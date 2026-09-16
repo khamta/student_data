@@ -18,13 +18,16 @@ That means:
 
 ## Files
 
+Only **two files** need to be pasted into Apps Script:
+
 | File               | Purpose                                                        |
 |--------------------|-----------------------------------------------------------------|
-| `appsscript.json`  | Apps Script project manifest (web app config)                  |
 | `Code.gs`          | Server-side logic: sheet setup, CRUD, photo upload, report data |
-| `Index.html`       | Main app page (tabs, table, forms)                              |
-| `Stylesheet.html`  | CSS, included into `Index.html`                                 |
-| `JavaScript.html`  | Client-side logic, included into `Index.html`                   |
+| `Index.html`       | The entire app UI — HTML, CSS and JavaScript in one file         |
+
+`appsscript.json` is included for reference / `clasp` deploys, but you do
+**not** need to open or edit it — Apps Script figures out the permissions
+it needs (Sheets + Drive) automatically the first time you run it.
 
 Data is stored in 3 sheets, auto-created the first time the app runs:
 
@@ -32,40 +35,42 @@ Data is stored in 3 sheets, auto-created the first time the app runs:
 - **Categories** — the "I. ...", "II. ..." group / major headings
 - **Settings** — the header text block and titles shown on the printed report
 
-## Deploy it for free (5 minutes, no coding needed)
+## Deploy it for free (3 minutes, no coding needed)
+
+This last step has to be done from **your own Google account** — deploying
+an Apps Script project requires clicking "Authorize" as yourself, which
+nobody else (including an AI assistant) can do on your behalf. It's quick:
 
 ### Option A — Copy-paste into the Apps Script editor (simplest)
 
 1. Go to [sheets.google.com](https://sheets.google.com) and create a **new
    blank spreadsheet**. Name it e.g. `ທຳນຽບນັກສຶກສາ`.
 2. In the sheet, open **Extensions → Apps Script**.
-3. In the Apps Script editor, click the gear icon (**Project Settings**) and
-   check **"Show `appsscript.json` manifest file in editor"**.
-4. Back in the editor (left sidebar, **Editor**):
+3. In the editor:
    - Open `Code.gs` (the default file), delete everything in it, and paste
-     in the contents of this repo's [`Code.gs`](./Code.gs).
-   - Click the `+` next to **Files** → **HTML** → name it `Index`, and
-     paste in the contents of [`Index.html`](./Index.html).
-   - Repeat for `Stylesheet` (HTML file) ← [`Stylesheet.html`](./Stylesheet.html)
-     and `JavaScript` (HTML file) ← [`JavaScript.html`](./JavaScript.html).
-   - Open `appsscript.json` and replace its contents with this repo's
-     [`appsscript.json`](./appsscript.json).
-5. Click **Save** (💾) then **Deploy → New deployment**.
+     in the contents of this repo's [`Code.gs`](./Code.gs). Save (Ctrl/Cmd+S).
+   - Click the `+` next to **Files** → **HTML** → name the new file exactly
+     `Index` → delete its placeholder contents and paste in this repo's
+     [`Index.html`](./Index.html). Save.
+4. Click **Deploy → New deployment**.
    - Click the gear next to "Select type" → **Web app**.
-   - Description: `Student registry`
    - Execute as: **Me**
    - Who has access: **Anyone** (fully public link) or **Anyone with a
      Google account** if you want to require sign-in first.
    - Click **Deploy**, then **Authorize access** and approve the permission
      prompts (this is your own script asking to edit your own sheet/drive —
      safe to accept).
-6. Copy the **Web app URL** shown — that is your live app. Open it, and
+5. Copy the **Web app URL** shown — that is your live app. Open it, and
    the three data sheets (`Students`, `Categories`, `Settings`) will be
    created automatically the first time it loads.
 
 That's it — the app is live, free, and yours. Bookmark the Web app URL, or
 open the sheet and use **Extensions → ⁠ລະບົບຈັດການນັກສຶກສາ → ເປີດຄູ່ມືການນຳໃຊ້**
 as a reminder of where to find it.
+
+If you ever edit the code again later, you only need **Deploy → Manage
+deployments → ✏️ (edit) → New version → Deploy** to push the update live at
+the same URL.
 
 ### Option B — Deploy via `clasp` (if you prefer the command line)
 

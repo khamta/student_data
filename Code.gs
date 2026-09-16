@@ -42,15 +42,10 @@ var DEFAULT_SETTINGS = [
 
 function doGet(e) {
   ensureSheets_();
-  return HtmlService.createTemplateFromFile('Index')
-    .evaluate()
+  return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('ລະບົບຈັດການທຳນຽບນັກສຶກສາ')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
