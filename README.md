@@ -1,78 +1,74 @@
-# ລະບົບຈັດການທຳນຽບນັກສຶກສາ (Student Registry Manager)
+# ລະບົບຈັດການທຳນຽບນັກສຶກສາ (ระบบจัดการทำเนียบนักศึกษา)
 
-A free, self-hosted web app for managing the student graduation registry data
-shown in your report template — add/edit/delete students, manage
-majors/categories, upload photos, and generate a printable report grouped
-by major with automatic male/female counts, matching the layout of your
-existing spreadsheet.
+เว็บแอปฟรีสำหรับจัดการข้อมูลทำเนียบนักศึกษาที่สำเร็จการศึกษา ตามรูปแบบรายงานที่แนบมา —
+เพิ่ม/แก้ไข/ลบข้อมูลนักศึกษา, จัดการหมวดหมู่/สาขาวิชา, อัปโหลดรูปภาพ, และสร้างรายงาน
+พร้อมพิมพ์ที่จัดกลุ่มตามสาขาวิชาพร้อมสรุปจำนวนชาย/หญิงอัตโนมัติ ตรงตามรูปแบบชีตเดิมของคุณ
 
-It is built as a **Google Apps Script web app bound to a Google Sheet**.
-That means:
+ระบบนี้สร้างด้วย **Google Apps Script web app ที่ผูกกับ Google ชีตโดยตรง**
+ซึ่งหมายความว่า:
 
-- **100% free** — hosted by Google on `script.google.com`, no server,
-  no credit card, no expiring trial.
-- **Data lives in a normal Google Sheet** you own, so you can always open
-  it directly, back it up, or export it.
-- **No API keys / service accounts to manage** — the app runs under your
-  own Google account permissions.
+- **ฟรี 100%** — โฮสต์โดย Google ที่ `script.google.com` ไม่ต้องมีเซิร์ฟเวอร์แยก
+  ไม่ต้องผูกบัตรเครดิต ไม่มีวันหมดอายุทดลองใช้
+- **ข้อมูลอยู่ใน Google ชีตปกติที่คุณเป็นเจ้าของ** เปิดดูตรงๆ, สำรองข้อมูล,
+  หรือส่งออกได้ตลอดเวลา
+- **ไม่ต้องจัดการ API key หรือ service account ใดๆ** — แอปทำงานภายใต้สิทธิ์
+  บัญชี Google ของคุณเอง
 
-## Files
+## ไฟล์ในโปรเจกต์
 
-Only **two files** need to be pasted into Apps Script:
+ต้องคัดลอกไปวางใน Apps Script แค่ **2 ไฟล์** เท่านั้น:
 
-| File               | Purpose                                                        |
+| ไฟล์               | หน้าที่                                                        |
 |--------------------|-----------------------------------------------------------------|
-| `Code.gs`          | Server-side logic: sheet setup, CRUD, photo upload, report data |
-| `Index.html`       | The entire app UI — HTML, CSS and JavaScript in one file         |
+| `Code.gs`          | โค้ดฝั่งเซิร์ฟเวอร์: ตั้งค่าชีต, CRUD ข้อมูล, อัปโหลดรูป, ข้อมูลรายงาน |
+| `Index.html`       | หน้าตาแอปทั้งหมด — HTML, CSS และ JavaScript รวมอยู่ในไฟล์เดียว    |
 
-`appsscript.json` is included for reference / `clasp` deploys, but you do
-**not** need to open or edit it — Apps Script figures out the permissions
-it needs (Sheets + Drive) automatically the first time you run it.
+ส่วน `appsscript.json` แนบไว้เพื่ออ้างอิง/สำหรับดีพลอยผ่าน `clasp` เท่านั้น
+**ไม่จำเป็นต้องเปิดหรือแก้ไข** — Apps Script จะตรวจจับสิทธิ์ที่ต้องใช้
+(Sheets + Drive) ให้อัตโนมัติตั้งแต่รันครั้งแรก
 
-Data is stored in 3 sheets, auto-created the first time the app runs:
+ข้อมูลจะถูกเก็บใน 3 ชีต ซึ่งจะถูกสร้างขึ้นอัตโนมัติตอนรันแอปครั้งแรก:
 
-- **Students** — one row per student (all fields from the form)
-- **Categories** — the "I. ...", "II. ..." group / major headings
-- **Settings** — the header text block and titles shown on the printed report
+- **Students** — ข้อมูลนักศึกษา 1 แถวต่อ 1 คน (ทุกฟิลด์จากฟอร์ม)
+- **Categories** — หัวข้อกลุ่ม "I. ...", "II. ..." / สาขาวิชา
+- **Settings** — ข้อความหัวกระดาษและชื่อเรื่องที่แสดงบนรายงานที่พิมพ์
 
-## Deploy it for free (3 minutes, no coding needed)
+## วิธีดีพลอยให้ใช้งานจริงแบบฟรี (ใช้เวลาประมาณ 3 นาที ไม่ต้องเขียนโค้ด)
 
-This last step has to be done from **your own Google account** — deploying
-an Apps Script project requires clicking "Authorize" as yourself, which
-nobody else (including an AI assistant) can do on your behalf. It's quick:
+ขั้นตอนสุดท้ายนี้ต้องทำจาก **บัญชี Google ของคุณเอง** เท่านั้น — การดีพลอย
+โปรเจกต์ Apps Script ต้องกดปุ่ม "Authorize" ด้วยตัวคุณเอง ซึ่งไม่มีใคร
+(รวมถึง AI ผู้ช่วย) ทำแทนได้ แต่ขั้นตอนไม่ยุ่งยาก:
 
-### Option A — Copy-paste into the Apps Script editor (simplest)
+### วิธีที่ 1 — คัดลอกไปวางใน Apps Script Editor (ง่ายที่สุด)
 
-1. Go to [sheets.google.com](https://sheets.google.com) and create a **new
-   blank spreadsheet**. Name it e.g. `ທຳນຽບນັກສຶກສາ`.
-2. In the sheet, open **Extensions → Apps Script**.
-3. In the editor:
-   - Open `Code.gs` (the default file), delete everything in it, and paste
-     in the contents of this repo's [`Code.gs`](./Code.gs). Save (Ctrl/Cmd+S).
-   - Click the `+` next to **Files** → **HTML** → name the new file exactly
-     `Index` → delete its placeholder contents and paste in this repo's
-     [`Index.html`](./Index.html). Save.
-4. Click **Deploy → New deployment**.
-   - Click the gear next to "Select type" → **Web app**.
+1. ไปที่ [sheets.google.com](https://sheets.google.com) แล้วสร้าง
+   **ชีตเปล่าใหม่** ตั้งชื่อ เช่น `ທຳນຽບນັກສຶກສາ`
+2. ในชีตนั้น เปิด **Extensions → Apps Script**
+3. ในหน้าตัวแก้ไข (editor):
+   - เปิดไฟล์ `Code.gs` (ไฟล์เริ่มต้น) ลบทุกอย่างในนั้นออก แล้วคัดลอกเนื้อหา
+     จากไฟล์ [`Code.gs`](./Code.gs) ของโปรเจกต์นี้ไปวาง แล้วกด Save (Ctrl/Cmd+S)
+   - กด `+` ข้างคำว่า **Files** → เลือก **HTML** → ตั้งชื่อไฟล์ใหม่ว่า
+     `Index` (ต้องตรงเป๊ะ) → ลบเนื้อหาตัวอย่างออกแล้วคัดลอกเนื้อหาจากไฟล์
+     [`Index.html`](./Index.html) ไปวาง แล้ว Save
+4. กด **Deploy → New deployment**
+   - กดไอคอนรูปเฟืองข้างคำว่า "Select type" → เลือก **Web app**
    - Execute as: **Me**
-   - Who has access: **Anyone** (fully public link) or **Anyone with a
-     Google account** if you want to require sign-in first.
-   - Click **Deploy**, then **Authorize access** and approve the permission
-     prompts (this is your own script asking to edit your own sheet/drive —
-     safe to accept).
-5. Copy the **Web app URL** shown — that is your live app. Open it, and
-   the three data sheets (`Students`, `Categories`, `Settings`) will be
-   created automatically the first time it loads.
+   - Who has access: เลือก **Anyone** (เป็นลิงก์สาธารณะเต็มรูปแบบ) หรือ
+     **Anyone with a Google account** ถ้าต้องการให้ล็อกอินก่อนเข้าใช้งาน
+   - กด **Deploy** จากนั้นกด **Authorize access** แล้วกดยอมรับสิทธิ์ที่ขึ้นมา
+     (เป็นสคริปต์ของคุณเองที่ขอสิทธิ์แก้ไขชีต/ไดรฟ์ของคุณเอง ปลอดภัยที่จะกดยอมรับ)
+5. คัดลอก **Web app URL** ที่ปรากฏขึ้นมา — นี่คือลิงก์แอปที่ใช้งานได้จริง
+   เปิดลิงก์นี้ครั้งแรก ระบบจะสร้าง 3 ชีตข้อมูล (`Students`, `Categories`,
+   `Settings`) ให้อัตโนมัติ
 
-That's it — the app is live, free, and yours. Bookmark the Web app URL, or
-open the sheet and use **Extensions → ⁠ລະບົບຈັດການນັກສຶກສາ → ເປີດຄູ່ມືການນຳໃຊ້**
-as a reminder of where to find it.
+เท่านี้ก็เสร็จ — แอปพร้อมใช้งานจริง ฟรี และเป็นของคุณเอง บันทึกลิงก์ Web app URL
+ไว้ หรือเข้าไปที่ชีตแล้วใช้เมนู **Extensions → ⁠ລະບົບຈັດການນັກສຶກສາ →
+ເປີດຄູ່ມືການນຳໃຊ້** เป็นตัวเตือนว่าจะหาลิงก์ได้จากที่ไหน
 
-If you ever edit the code again later, you only need **Deploy → Manage
-deployments → ✏️ (edit) → New version → Deploy** to push the update live at
-the same URL.
+ถ้าในอนาคตต้องการแก้ไขโค้ดเพิ่มเติม แค่เข้า **Deploy → Manage deployments
+→ ✏️ (แก้ไข) → New version → Deploy** เพื่ออัปเดตแอปที่ลิงก์เดิมได้เลย
 
-### Option B — Deploy via `clasp` (if you prefer the command line)
+### วิธีที่ 2 — ดีพลอยผ่าน `clasp` (สำหรับผู้ที่ถนัด command line)
 
 ```bash
 npm install -g @google/clasp
@@ -82,36 +78,34 @@ clasp push
 clasp deploy
 ```
 
-`clasp create --type sheet` creates a brand-new bound Google Sheet for you
-and links this folder to it. After `clasp deploy`, get the web app URL with
-`clasp deployments` / from the Apps Script editor's **Deploy → Manage
-deployments**.
+`clasp create --type sheet` จะสร้าง Google ชีตใหม่ที่ผูกกับสคริปต์ให้อัตโนมัติ
+หลังจาก `clasp deploy` แล้ว ดูลิงก์ Web app ได้จากคำสั่ง `clasp deployments`
+หรือจากเมนู **Deploy → Manage deployments** ใน Apps Script editor
 
-## Using the app
+## วิธีใช้งานแอป
 
-- **ລາຍຊື່ນັກສຶກສາ (Student list)** — search/filter, add, edit, delete
-  students. Photos are uploaded straight into a Google Drive folder called
-  `StudentPhotos_DoNotDelete` and linked into the sheet automatically.
-- **ໝວດໝູ່ / ສາຂາວິຊາ (Categories)** — add/rename/delete the "I. ...",
-  "II. ..." major groupings used to organize the report.
-- **ຕັ້ງຄ່າຫົວບົດລາຍງານ (Settings)** — edit the organization header lines,
-  report title, and signature-line captions shown on the printed report.
-- **ພິມ / ອອກລາຍງານ (Report)** — renders the full report grouped by
-  category with per-category and grand-total male/female counts, matching
-  your original layout. Click **🖨️ ພິມ / ບັນທຶກເປັນ PDF** and choose
-  "Save as PDF" in the browser print dialog to export a PDF — no extra
-  service required.
+- **ລາຍຊື່ນັກສຶກສາ (รายชื่อนักศึกษา)** — ค้นหา/กรอง, เพิ่ม, แก้ไข, ลบข้อมูล
+  นักศึกษา รูปภาพจะถูกอัปโหลดเข้าโฟลเดอร์ Google Drive ชื่อ
+  `StudentPhotos_DoNotDelete` และเชื่อมลิงก์กลับเข้าชีตให้อัตโนมัติ
+- **ໝວດໝູ່ / ສາຂາວິຊາ (หมวดหมู่/สาขาวิชา)** — เพิ่ม/เปลี่ยนชื่อ/ลบกลุ่ม
+  "I. ...", "II. ..." ที่ใช้จัดหมวดหมู่ในรายงาน
+- **ຕັ້ງຄ່າຫົວບົດລາຍງານ (ตั้งค่าหัวรายงาน)** — แก้ไขข้อความหัวกระดาษองค์กร,
+  ชื่อเรื่องรายงาน, และคำบรรยายช่องลายเซ็นที่แสดงบนรายงานที่พิมพ์
+- **ພິມ / ອອກລາຍງານ (พิมพ์/ออกรายงาน)** — แสดงรายงานฉบับเต็มจัดกลุ่มตาม
+  หมวดหมู่ พร้อมสรุปจำนวนชาย/หญิงทั้งรายกลุ่มและรวมทั้งหมด ตรงตามรูปแบบเดิม
+  กดปุ่ม **🖨️ ພິມ / ບັນທຶກເປັນ PDF** แล้วเลือก "Save as PDF" ในหน้าต่างพิมพ์
+  ของเบราว์เซอร์เพื่อส่งออกเป็น PDF ได้เลย ไม่ต้องพึ่งบริการเสริมใดๆ
 
-## Notes & customization
+## หมายเหตุและการปรับแต่งเพิ่มเติม
 
-- Photos are shared as "anyone with the link can view" so they can be
-  embedded in the report/app; don't upload sensitive images if that's a
-  concern for your use case.
-- The exact wording of the summary rows / titles can be adjusted any time
-  from the **Settings** tab — no code changes needed.
-- Because the app is bound to your Google Sheet, you (or anyone you share
-  edit-access with) can also open the raw sheets directly for bulk edits,
-  and the web app will reflect those changes on next reload.
-- To restrict who can use the app, redeploy with **Who has access → Anyone
-  with a Google account**, or **Only myself**, from **Deploy → Manage
-  deployments → Edit (pencil icon)**.
+- รูปภาพจะถูกตั้งค่าแชร์แบบ "ทุกคนที่มีลิงก์สามารถดูได้" เพื่อให้แสดงผลใน
+  แอป/รายงานได้ หากมีข้อกังวลเรื่องความเป็นส่วนตัว ไม่ควรอัปโหลดรูปที่
+  เป็นข้อมูลอ่อนไหว
+- ข้อความในแถวสรุป/ชื่อเรื่องต่างๆ สามารถปรับแก้ได้ตลอดเวลาจากแท็บ
+  **Settings** โดยไม่ต้องแก้โค้ด
+- เนื่องจากแอปผูกกับ Google ชีตของคุณโดยตรง คุณ (หรือผู้ที่คุณแชร์สิทธิ์
+  แก้ไขให้) สามารถเปิดชีตดิบเพื่อแก้ไขข้อมูลจำนวนมากได้โดยตรง และเว็บแอป
+  จะแสดงผลข้อมูลที่อัปเดตในการโหลดครั้งถัดไป
+- หากต้องการจำกัดผู้ใช้งาน ให้ดีพลอยใหม่โดยเลือก **Who has access →
+  Anyone with a Google account** หรือ **Only myself** จากเมนู
+  **Deploy → Manage deployments → แก้ไข (ไอคอนดินสอ)**
