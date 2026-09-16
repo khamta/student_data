@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <?!= include('Stylesheet'); ?>
+</head>
+<body>
+
+  <div class="topbar no-print">
+    <h1>ລະບົບຈັດການທຳນຽບນັກສຶກສາ</h1>
+    <div>
+      <span id="studentCountBadge" class="badge">…</span>
+    </div>
+  </div>
+
+  <div class="tabs no-print">
+    <button class="tab-btn" data-tab="list">ລາຍຊື່ນັກສຶກສາ</button>
+    <button class="tab-btn" data-tab="categories">ໝວດໝູ່ / ສາຂາວິຊາ</button>
+    <button class="tab-btn" data-tab="settings">ຕັ້ງຄ່າຫົວບົດລາຍງານ</button>
+    <button class="tab-btn" data-tab="report">ພິມ / ອອກລາຍງານ</button>
+  </div>
+
+  <div class="page">
+
+    <!-- ================= LIST TAB ================= -->
+    <div id="tab-list" class="tab-panel">
+      <div class="toolbar">
+        <input id="searchInput" type="text" placeholder="ຄົ້ນຫາຊື່, ລະຫັດ, ບ້ານ...">
+        <select id="filterCategory"><option value="">ທຸກໝວດໝູ່</option></select>
+        <button id="btnAddStudent">+ ເພີ່ມນັກສຶກສາ</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="studentTable">
+          <thead>
+            <tr>
+              <th>ລ/ດ</th><th>ຮູບ</th><th>ລະຫັດນັກສຶກສາ</th><th>ຊື່ ແລະ ນາມສະກຸນ</th>
+              <th>ວັນເດືອນປີເກີດ</th><th>ບ້ານ</th><th>ໝວດໝູ່ / ສາຂາວິຊາ</th><th>ຈັດການ</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody"></tbody>
+        </table>
+      </div>
+      <div id="listEmptyState" class="empty-state hidden">ຍັງບໍ່ມີຂໍ້ມູນນັກສຶກສາ — ກົດ "ເພີ່ມນັກສຶກສາ" ເພື່ອເລີ່ມຕົ້ນ</div>
+    </div>
+
+    <!-- ================= CATEGORIES TAB ================= -->
+    <div id="tab-categories" class="tab-panel hidden">
+      <div class="card">
+        <h2 style="margin-top:0">ເພີ່ມໝວດໝູ່ / ສາຂາວິຊາໃໝ່</h2>
+        <div class="toolbar">
+          <input id="newCategoryName" type="text" placeholder="ຕົວຢ່າງ: III. ສາຂາການບັນຊີ" style="flex:1;min-width:260px">
+          <button id="btnAddCategory">+ ເພີ່ມ</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th style="width:60px">ລຳດັບ</th><th>ຊື່ໝວດໝູ່</th><th style="width:220px">ຈັດການ</th></tr></thead>
+        <tbody id="categoryTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ================= SETTINGS TAB ================= -->
+    <div id="tab-settings" class="tab-panel hidden">
+      <div class="card">
+        <h2 style="margin-top:0">ຫົວບົດ / ຂໍ້ມູນອົງກອນ (ສະແດງເທິງລາຍງານ)</h2>
+        <div id="settingsForm"></div>
+        <button id="btnSaveSettings">ບັນທຶກການຕັ້ງຄ່າ</button>
+      </div>
+    </div>
+
+    <!-- ================= REPORT TAB ================= -->
+    <div id="tab-report" class="tab-panel hidden">
+      <div class="toolbar no-print">
+        <button id="btnPrint">🖨️ ພິມ / ບັນທຶກເປັນ PDF</button>
+        <button id="btnRefreshReport" class="secondary">ໂຫລດຂໍ້ມູນໃໝ່</button>
+      </div>
+      <div id="reportRoot"></div>
+    </div>
+
+  </div>
+
+  <!-- ================= STUDENT MODAL ================= -->
+  <div id="studentModalBackdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <h2 id="studentModalTitle">ເພີ່ມນັກສຶກສາ</h2>
+      <form id="studentForm">
+        <input type="hidden" id="f_ID">
+        <div class="grid-3">
+          <div class="field">
+            <label>ຮູບພາບ</label>
+            <input type="file" id="f_PhotoFile" accept="image/*">
+            <img id="f_PhotoPreview" class="thumb" style="margin-top:6px;display:none">
+            <input type="hidden" id="f_PhotoUrl">
+          </div>
+          <div class="field">
+            <label>ລະຫັດນັກສຶກສາ (ເລກທະບຽນ)</label>
+            <input type="text" id="f_StudentCode">
+          </div>
+          <div class="field">
+            <label>ໝວດໝູ່ / ສາຂາວິຊາ</label>
+            <select id="f_CategoryId"></select>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label>ຄຳນຳໜ້າ (ທ່ານ/ນາງ)</label>
+            <input type="text" id="f_Rank" placeholder="ທ້າວ / ນາງ">
+          </div>
+          <div class="field">
+            <label>ຊື່ ແລະ ນາມສະກຸນ (ພາສາລາວ)</label>
+            <input type="text" id="f_LaoName">
+          </div>
+          <div class="field">
+            <label>ຊື່ ແລະ ນາມສະກຸນ (ພາສາອັງກິດ)</label>
+            <input type="text" id="f_EnglishName" placeholder="Mr./Ms. FirstName LASTNAME">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label>ວັນເດືອນປີເກີດ</label>
+            <input type="date" id="f_DOB">
+          </div>
+          <div class="field">
+            <label>ເພດ</label>
+            <select id="f_Gender">
+              <option value="M">ຊາຍ</option>
+              <option value="F">ຍິງ</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>ບ້ານ</label>
+            <input type="text" id="f_Village">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label>ເມືອງ/ນະຄອນ</label>
+            <input type="text" id="f_District">
+          </div>
+          <div class="field">
+            <label>ແຂວງ</label>
+            <input type="text" id="f_Province">
+          </div>
+          <div class="field">
+            <label>ວິຊາສະເພາະ (Major)</label>
+            <input type="text" id="f_Major" placeholder="Bussiness Administration">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>ເລກທີໜັງສືຮັບຮອງ (ພາສາລາວ)</label>
+            <input type="text" id="f_CertNoLao" placeholder="001/ຄຄທ/ຄມ.25">
+          </div>
+          <div class="field">
+            <label>ເລກທີໜັງສືຮັບຮອງ (ພາສາອັງກິດ)</label>
+            <input type="text" id="f_CertNoEnglish" placeholder="001/KBAC/KM.25">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label>ໃບປະກາດສະນີຍະບັດ ມ.6</label>
+            <input type="text" id="f_DiplomaM6">
+          </div>
+          <div class="field">
+            <label>ໃບປະກາດສະນີຍະບັດ ມ.7</label>
+            <input type="text" id="f_DiplomaM7">
+          </div>
+        </div>
+      </form>
+      <div class="modal-actions">
+        <button class="secondary" id="btnCancelStudent">ຍົກເລີກ</button>
+        <button id="btnSaveStudent">ບັນທຶກ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <?!= include('JavaScript'); ?>
+</body>
+</html>

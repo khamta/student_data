@@ -1,0 +1,418 @@
+<script>
+  var STATE = { students: [], categories: [], settings: {} };
+
+  var SETTINGS_FIELDS = [
+    ['OrgLine1', 'ບັນທັດທີ 1 (ຊື່ປະເທດ)'],
+    ['OrgLine2', 'ບັນທັດທີ 2 (ຄຳຂວັນ)'],
+    ['OrgLine3', 'ບັນທັດທີ 3 (ກະຊວງ)'],
+    ['OrgLine4', 'ບັນທັດທີ 4 (ກົມ)'],
+    ['OrgLine5', 'ບັນທັດທີ 5 (ພະແນກ)'],
+    ['OrgLine6', 'ບັນທັດທີ 6 (ຊື່ໂຮງຮຽນ/ວິທະຍາໄລ)'],
+    ['OrgLine7', 'ບັນທັດທີ 7 (ໂທລະສັບ)'],
+    ['ReportTitle', 'ຫົວຂໍ້ລາຍງານ'],
+    ['ReportSubtitle', 'ຫົວຂໍ້ຍ່ອຍ'],
+    ['ApprovalLeft', 'ຂໍ້ຄວາມວັນທີ (ລຸ່ມຊ້າຍ)'],
+    ['ApprovalLeftTitle', 'ຕຳແໜ່ງເຊັນຊ້າຍ'],
+    ['ApprovalRightTitle', 'ຕຳແໜ່ງເຊັນຂວາ']
+  ];
+
+  document.addEventListener('DOMContentLoaded', function () {
+    bindTabs();
+    bindStudentModal();
+    bindCategoryUI();
+    bindSettingsUI();
+    bindReportUI();
+    loadAll();
+  });
+
+  function bindTabs() {
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.add('hidden'); });
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+        if (btn.dataset.tab === 'report') renderReport();
+      });
+    });
+    document.querySelector('.tab-btn[data-tab="list"]').classList.add('active');
+  }
+
+  function loadAll() {
+    google.script.run.withSuccessHandler(function (data) {
+      STATE.students = data.students || [];
+      STATE.categories = data.categories || [];
+      STATE.settings = data.settings || {};
+      renderCategoryOptions();
+      renderStudentTable();
+      renderCategoryTable();
+      renderSettingsForm();
+      updateBadge();
+    }).withFailureHandler(showError).getAllData();
+  }
+
+  function updateBadge() {
+    document.getElementById('studentCountBadge').textContent = STATE.students.length + ' ຄົນ';
+  }
+
+  function categoryName(id) {
+    var c = STATE.categories.find(function (c) { return c.ID === id; });
+    return c ? c.Name : '(ບໍ່ລະບຸ)';
+  }
+
+  /* ---------------- Student list ---------------- */
+
+  function renderCategoryOptions() {
+    var filter = document.getElementById('filterCategory');
+    var modalSelect = document.getElementById('f_CategoryId');
+    filter.innerHTML = '<option value="">ທຸກໝວດໝູ່</option>';
+    modalSelect.innerHTML = '';
+    STATE.categories.forEach(function (c) {
+      filter.appendChild(new Option(c.Name, c.ID));
+      modalSelect.appendChild(new Option(c.Name, c.ID));
+    });
+  }
+
+  function currentFilteredStudents() {
+    var q = document.getElementById('searchInput').value.trim().toLowerCase();
+    var cat = document.getElementById('filterCategory').value;
+    return STATE.students
+      .slice()
+      .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
+      .filter(function (s) {
+        if (cat && s.CategoryId !== cat) return false;
+        if (!q) return true;
+        var hay = [s.StudentCode, s.LaoName, s.EnglishName, s.Village, s.District, s.Province]
+          .join(' ').toLowerCase();
+        return hay.indexOf(q) !== -1;
+      });
+  }
+
+  function renderStudentTable() {
+    var tbody = document.getElementById('studentTableBody');
+    var list = currentFilteredStudents();
+    tbody.innerHTML = '';
+    document.getElementById('listEmptyState').classList.toggle('hidden', list.length > 0);
+
+    list.forEach(function (s, idx) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
+        '<td>' + escapeHtml(s.StudentCode) + '</td>' +
+        '<td class="name-cell">' + escapeHtml(s.Rank || '') + ' ' + escapeHtml(s.LaoName || '') +
+          '<br><span style="color:#888;font-size:11px">' + escapeHtml(s.EnglishName || '') + '</span></td>' +
+        '<td>' + escapeHtml(s.DOB || '') + '</td>' +
+        '<td>' + escapeHtml(s.Village || '') + '</td>' +
+        '<td>' + escapeHtml(categoryName(s.CategoryId)) + '</td>' +
+        '<td>' +
+          '<button class="ghost" onclick="editStudent(\'' + s.ID + '\')">ແກ້ໄຂ</button> ' +
+          '<button class="danger" onclick="removeStudent(\'' + s.ID + '\')">ລຶບ</button>' +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.addEventListener('input', function (e) {
+    if (e.target && (e.target.id === 'searchInput')) renderStudentTable();
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.id === 'filterCategory') renderStudentTable();
+  });
+
+  /* ---------------- Student modal ---------------- */
+
+  var pendingPhotoBase64 = null;
+  var pendingPhotoMime = null;
+
+  function bindStudentModal() {
+    document.getElementById('btnAddStudent').addEventListener('click', function () { openStudentModal(null); });
+    document.getElementById('btnCancelStudent').addEventListener('click', closeStudentModal);
+    document.getElementById('btnSaveStudent').addEventListener('click', saveStudentForm);
+
+    document.getElementById('f_PhotoFile').addEventListener('change', function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var result = reader.result; // data:image/png;base64,xxxx
+        var parts = result.split(',');
+        pendingPhotoMime = file.type;
+        pendingPhotoBase64 = parts[1];
+        document.getElementById('f_PhotoPreview').src = result;
+        document.getElementById('f_PhotoPreview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function openStudentModal(id) {
+    pendingPhotoBase64 = null;
+    pendingPhotoMime = null;
+    var s = id ? STATE.students.find(function (x) { return x.ID === id; }) : null;
+    document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
+    document.getElementById('f_ID').value = s ? s.ID : '';
+    document.getElementById('f_StudentCode').value = s ? s.StudentCode || '' : '';
+    document.getElementById('f_CategoryId').value = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
+    document.getElementById('f_Rank').value = s ? s.Rank || '' : '';
+    document.getElementById('f_LaoName').value = s ? s.LaoName || '' : '';
+    document.getElementById('f_EnglishName').value = s ? s.EnglishName || '' : '';
+    document.getElementById('f_DOB').value = s ? s.DOB || '' : '';
+    document.getElementById('f_Gender').value = s ? s.Gender || 'M' : 'M';
+    document.getElementById('f_Village').value = s ? s.Village || '' : '';
+    document.getElementById('f_District').value = s ? s.District || '' : '';
+    document.getElementById('f_Province').value = s ? s.Province || '' : '';
+    document.getElementById('f_Major').value = s ? s.Major || '' : '';
+    document.getElementById('f_CertNoLao').value = s ? s.CertNoLao || '' : '';
+    document.getElementById('f_CertNoEnglish').value = s ? s.CertNoEnglish || '' : '';
+    document.getElementById('f_DiplomaM6').value = s ? s.DiplomaM6 || '' : '';
+    document.getElementById('f_DiplomaM7').value = s ? s.DiplomaM7 || '' : '';
+    document.getElementById('f_PhotoUrl').value = s ? s.PhotoUrl || '' : '';
+    document.getElementById('f_PhotoFile').value = '';
+    var preview = document.getElementById('f_PhotoPreview');
+    if (s && s.PhotoUrl) { preview.src = s.PhotoUrl; preview.style.display = 'block'; }
+    else { preview.style.display = 'none'; }
+
+    document.getElementById('studentModalBackdrop').classList.remove('hidden');
+  }
+
+  function closeStudentModal() {
+    document.getElementById('studentModalBackdrop').classList.add('hidden');
+  }
+
+  function saveStudentForm() {
+    var btn = document.getElementById('btnSaveStudent');
+    btn.disabled = true;
+
+    var student = {
+      ID: document.getElementById('f_ID').value || undefined,
+      StudentCode: document.getElementById('f_StudentCode').value,
+      CategoryId: document.getElementById('f_CategoryId').value,
+      Rank: document.getElementById('f_Rank').value,
+      LaoName: document.getElementById('f_LaoName').value,
+      EnglishName: document.getElementById('f_EnglishName').value,
+      DOB: document.getElementById('f_DOB').value,
+      Gender: document.getElementById('f_Gender').value,
+      Village: document.getElementById('f_Village').value,
+      District: document.getElementById('f_District').value,
+      Province: document.getElementById('f_Province').value,
+      Major: document.getElementById('f_Major').value,
+      CertNoLao: document.getElementById('f_CertNoLao').value,
+      CertNoEnglish: document.getElementById('f_CertNoEnglish').value,
+      DiplomaM6: document.getElementById('f_DiplomaM6').value,
+      DiplomaM7: document.getElementById('f_DiplomaM7').value,
+      PhotoUrl: document.getElementById('f_PhotoUrl').value
+    };
+
+    function finishSave() {
+      google.script.run.withSuccessHandler(function (data) {
+        STATE.students = data.students;
+        STATE.categories = data.categories;
+        renderStudentTable();
+        updateBadge();
+        closeStudentModal();
+        showToast('ບັນທຶກຂໍ້ມູນສຳເລັດ');
+        btn.disabled = false;
+      }).withFailureHandler(function (err) { showError(err); btn.disabled = false; }).upsertStudent(student);
+    }
+
+    if (pendingPhotoBase64) {
+      google.script.run.withSuccessHandler(function (url) {
+        student.PhotoUrl = url;
+        finishSave();
+      }).withFailureHandler(function (err) { showError(err); btn.disabled = false; })
+        .uploadPhoto(pendingPhotoBase64, pendingPhotoMime, 'student-' + Date.now());
+    } else {
+      finishSave();
+    }
+  }
+
+  function editStudent(id) { openStudentModal(id); }
+
+  function removeStudent(id) {
+    if (!confirm('ຢືນຢັນການລຶບຂໍ້ມູນນັກສຶກສານີ້?')) return;
+    google.script.run.withSuccessHandler(function (data) {
+      STATE.students = data.students;
+      STATE.categories = data.categories;
+      renderStudentTable();
+      updateBadge();
+      showToast('ລຶບຂໍ້ມູນສຳເລັດ');
+    }).withFailureHandler(showError).deleteStudent(id);
+  }
+
+  /* ---------------- Categories ---------------- */
+
+  function bindCategoryUI() {
+    document.getElementById('btnAddCategory').addEventListener('click', function () {
+      var input = document.getElementById('newCategoryName');
+      var name = input.value.trim();
+      if (!name) return;
+      google.script.run.withSuccessHandler(function (data) {
+        STATE.categories = data.categories;
+        renderCategoryOptions();
+        renderCategoryTable();
+        input.value = '';
+        showToast('ເພີ່ມໝວດໝູ່ສຳເລັດ');
+      }).withFailureHandler(showError).upsertCategory({ Name: name });
+    });
+  }
+
+  function renderCategoryTable() {
+    var tbody = document.getElementById('categoryTableBody');
+    tbody.innerHTML = '';
+    STATE.categories
+      .slice()
+      .sort(function (a, b) { return (a.SortOrder || 0) - (b.SortOrder || 0); })
+      .forEach(function (c) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + c.SortOrder + '</td>' +
+          '<td class="name-cell"><input type="text" value="' + escapeAttr(c.Name) + '" onchange="renameCategory(\'' + c.ID + '\', this.value)"></td>' +
+          '<td><button class="danger" onclick="removeCategory(\'' + c.ID + '\')">ລຶບ</button></td>';
+        tbody.appendChild(tr);
+      });
+  }
+
+  function renameCategory(id, name) {
+    var c = STATE.categories.find(function (x) { return x.ID === id; });
+    google.script.run.withSuccessHandler(function (data) {
+      STATE.categories = data.categories;
+      renderCategoryOptions();
+      renderStudentTable();
+      showToast('ບັນທຶກຊື່ໝວດໝູ່ສຳເລັດ');
+    }).withFailureHandler(showError).upsertCategory({ ID: id, Name: name, SortOrder: c ? c.SortOrder : 0 });
+  }
+
+  function removeCategory(id) {
+    if (!confirm('ຢືນຢັນການລຶບໝວດໝູ່ນີ້?')) return;
+    google.script.run.withSuccessHandler(function (data) {
+      STATE.categories = data.categories;
+      renderCategoryOptions();
+      renderCategoryTable();
+      showToast('ລຶບໝວດໝູ່ສຳເລັດ');
+    }).withFailureHandler(showError).deleteCategory(id);
+  }
+
+  /* ---------------- Settings ---------------- */
+
+  function bindSettingsUI() {
+    document.getElementById('btnSaveSettings').addEventListener('click', function () {
+      var obj = {};
+      SETTINGS_FIELDS.forEach(function (f) {
+        obj[f[0]] = document.getElementById('set_' + f[0]).value;
+      });
+      google.script.run.withSuccessHandler(function (settings) {
+        STATE.settings = settings;
+        showToast('ບັນທຶກການຕັ້ງຄ່າສຳເລັດ');
+      }).withFailureHandler(showError).saveSettings(obj);
+    });
+  }
+
+  function renderSettingsForm() {
+    var container = document.getElementById('settingsForm');
+    container.innerHTML = '';
+    SETTINGS_FIELDS.forEach(function (f) {
+      var div = document.createElement('div');
+      div.className = 'field';
+      div.innerHTML = '<label>' + f[1] + '</label><input type="text" id="set_' + f[0] + '" style="width:100%" value="' + escapeAttr(STATE.settings[f[0]] || '') + '">';
+      container.appendChild(div);
+    });
+  }
+
+  /* ---------------- Report / print ---------------- */
+
+  function bindReportUI() {
+    document.getElementById('btnPrint').addEventListener('click', function () { window.print(); });
+    document.getElementById('btnRefreshReport').addEventListener('click', renderReport);
+  }
+
+  function renderReport() {
+    google.script.run.withSuccessHandler(function (report) {
+      document.getElementById('reportRoot').innerHTML = buildReportHtml(report);
+    }).withFailureHandler(showError).getReportData();
+  }
+
+  function buildReportHtml(report) {
+    var st = report.settings;
+    var html = '';
+    html += '<div class="report-header">';
+    ['OrgLine1', 'OrgLine2'].forEach(function (k) { html += '<div style="font-weight:700">' + escapeHtml(st[k] || '') + '</div>'; });
+    ['OrgLine3', 'OrgLine4', 'OrgLine5', 'OrgLine6', 'OrgLine7'].forEach(function (k) {
+      if (st[k]) html += '<div>' + escapeHtml(st[k]) + '</div>';
+    });
+    html += '</div>';
+    html += '<div class="report-title">' + escapeHtml(st.ReportTitle || '') + '</div>';
+    if (st.ReportSubtitle) html += '<div class="report-subtitle">' + escapeHtml(st.ReportSubtitle) + '</div>';
+
+    var romanIdx = 0;
+    report.groups.forEach(function (g) {
+      if (g.students.length === 0 && report.groups.length > 1) return;
+      romanIdx++;
+      html += '<div class="category-heading">' + escapeHtml(g.category.Name) + '</div>';
+      html += '<table><thead><tr>' +
+        '<th>ລ/ດ</th><th>ເລກທະບຽນ</th><th>ຮູບພາບ</th><th>ຄຳນຳໜ້າ</th>' +
+        '<th>ຊື່ ແລະ ນາມສະກຸນ<br>(ພາສາອັງກິດ)</th><th>ວັນເດືອນປີເກີດ</th>' +
+        '<th>ບ້ານ</th><th>ເມືອງ/ນະຄອນ</th><th>ແຂວງ</th><th>ວິຊາສະເພາະ</th>' +
+        '<th>ເລກທີໜັງສືຮັບຮອງ<br>(ລາວ)</th><th>ເລກທີໜັງສືຮັບຮອງ<br>(ອັງກິດ)</th>' +
+        '<th>ມ.6</th><th>ມ.7</th>' +
+        '</tr></thead><tbody>';
+      g.students.forEach(function (s, idx) {
+        html += '<tr>' +
+          '<td>' + (idx + 1) + '</td>' +
+          '<td>' + escapeHtml(s.StudentCode || '') + '</td>' +
+          '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
+          '<td>' + escapeHtml(s.Rank || '') + '</td>' +
+          '<td class="name-cell">' + escapeHtml(s.EnglishName || '') + '<br><span style="color:#888">' + escapeHtml(s.LaoName || '') + '</span></td>' +
+          '<td>' + escapeHtml(s.DOB || '') + '</td>' +
+          '<td>' + escapeHtml(s.Village || '') + '</td>' +
+          '<td>' + escapeHtml(s.District || '') + '</td>' +
+          '<td>' + escapeHtml(s.Province || '') + '</td>' +
+          '<td>' + escapeHtml(s.Major || '') + '</td>' +
+          '<td>' + escapeHtml(s.CertNoLao || '') + '</td>' +
+          '<td>' + escapeHtml(s.CertNoEnglish || '') + '</td>' +
+          '<td>' + escapeHtml(s.DiplomaM6 || '') + '</td>' +
+          '<td>' + escapeHtml(s.DiplomaM7 || '') + '</td>' +
+          '</tr>';
+      });
+      html += '</tbody></table>';
+    });
+
+    html += '<table class="summary-table" style="margin-top:20px;max-width:520px">';
+    html += '<thead><tr><th>ໝວດໝູ່ / ສາຂາວິຊາ</th><th class="num">ຊາຍ</th><th class="num">ຍິງ</th><th class="num">ລວມ</th></tr></thead><tbody>';
+    report.summary.forEach(function (s) {
+      html += '<tr><td>' + escapeHtml(s.name) + '</td><td class="num">' + s.male + '</td><td class="num">' + s.female + '</td><td class="num">' + s.total + '</td></tr>';
+    });
+    html += '<tr style="font-weight:700"><td>ລວມທັງໝົດ</td><td class="num">' + report.grandTotal.male +
+      '</td><td class="num">' + report.grandTotal.female + '</td><td class="num">' + report.grandTotal.total + '</td></tr>';
+    html += '</tbody></table>';
+
+    html += '<div class="sign-row">' +
+      '<div style="text-align:center">' + escapeHtml(st.ApprovalLeft || '') + '<br><br><br>............................<br>' + escapeHtml(st.ApprovalLeftTitle || '') + '</div>' +
+      '<div style="text-align:center">&nbsp;<br><br><br>............................<br>' + escapeHtml(st.ApprovalRightTitle || '') + '</div>' +
+      '</div>';
+
+    return html;
+  }
+
+  /* ---------------- Utilities ---------------- */
+
+  function escapeHtml(str) {
+    if (str === undefined || str === null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
+
+  function showToast(msg, isError) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('error', !!isError);
+    t.classList.remove('hidden');
+    setTimeout(function () { t.classList.add('hidden'); }, 3000);
+  }
+
+  function showError(err) {
+    console.error(err);
+    showToast((err && err.message) ? err.message : 'ເກີດຂໍ້ຜິດພາດ', true);
+  }
+</script>
