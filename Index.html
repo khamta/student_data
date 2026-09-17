@@ -115,8 +115,33 @@
     object-fit: cover;
     border: 1px solid var(--border);
     background: #eee;
+    cursor: zoom-in;
   }
   .thumb-wide { width: 140px; height: 90px; border-radius: 6px; }
+
+  .lightbox-backdrop {
+    position: fixed; inset: 0; background: rgba(15, 10, 8, .88);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .lightbox-img {
+    max-width: 90vw; max-height: 85vh;
+    cursor: grab; user-select: none; -webkit-user-drag: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,.5);
+    transform-origin: center center;
+  }
+  .lightbox-img.dragging { cursor: grabbing; }
+  .lightbox-close {
+    position: absolute; top: 18px; right: 22px; z-index: 201;
+    background: rgba(255,255,255,.15); color: #fff; border: none;
+    width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer;
+  }
+  .lightbox-close:hover { background: rgba(255,255,255,.3); }
+  .lightbox-hint {
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,.65); font-size: 12px; z-index: 201; pointer-events: none;
+    white-space: nowrap;
+  }
   .card {
     background: #fff;
     border: 1px solid var(--border);
@@ -456,6 +481,13 @@
     </div>
   </div>
 
+  <!-- ================= IMAGE LIGHTBOX (PREVIEW / ZOOM) ================= -->
+  <div id="lightboxBackdrop" class="lightbox-backdrop hidden">
+    <button type="button" id="btnLightboxClose" class="lightbox-close" aria-label="ປິດ">✕</button>
+    <img id="lightboxImg" class="lightbox-img" alt="">
+    <div class="lightbox-hint">ເລື່ອນລໍ້ເມົາເພື່ອຊູມ • ລາກເພື່ອເລື່ອນ • ກົດສອງເທື່ອເພື່ອຊູມໄວ • Esc ເພື່ອປິດ</div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
 
   <script>
@@ -483,10 +515,91 @@
     bindStudentModal();
     bindConfirmModal();
     bindDetailModal();
+    bindLightbox();
     bindSettingsUI();
     bindReportUI();
     loadAll();
   });
+
+  /* ---------------- Image lightbox (click any photo to preview / zoom) ---------------- */
+
+  var lightboxScale = 1;
+  var lightboxTranslate = { x: 0, y: 0 };
+  var lightboxDragging = false;
+  var lightboxDragStart = null;
+
+  function openLightbox(src) {
+    lightboxScale = 1;
+    lightboxTranslate = { x: 0, y: 0 };
+    var img = document.getElementById('lightboxImg');
+    img.src = src;
+    applyLightboxTransform();
+    document.getElementById('lightboxBackdrop').classList.remove('hidden');
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightboxBackdrop').classList.add('hidden');
+    document.getElementById('lightboxImg').src = '';
+  }
+
+  function applyLightboxTransform() {
+    var img = document.getElementById('lightboxImg');
+    img.style.transform = 'translate(' + lightboxTranslate.x + 'px, ' + lightboxTranslate.y + 'px) scale(' + lightboxScale + ')';
+  }
+
+  function zoomLightbox(delta) {
+    lightboxScale = Math.min(5, Math.max(1, lightboxScale + delta));
+    if (lightboxScale === 1) lightboxTranslate = { x: 0, y: 0 };
+    applyLightboxTransform();
+  }
+
+  function bindLightbox() {
+    var backdrop = document.getElementById('lightboxBackdrop');
+    var lbImg = document.getElementById('lightboxImg');
+
+    // ຄລິກຮູບໃດໆທີ່ມີ class thumb/thumb-wide ໃນທົ່ວແອັບ (ລາຍຊື່, ລາຍລະອຽດ,
+    // ລາຍງານ, ຕົວຢ່າງໃນຟອມ) ໃຫ້ເປີດພຣີວິວແບບເຕັມຈໍໄດ້ໂດຍບໍ່ຕ້ອງຜູກເທື່ອລະບ່ອນ.
+    document.addEventListener('click', function (e) {
+      var img = e.target.closest('img.thumb, img.thumb-wide');
+      if (img && img.src) { openLightbox(img.src); }
+    });
+
+    document.getElementById('btnLightboxClose').addEventListener('click', closeLightbox);
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop) closeLightbox();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !backdrop.classList.contains('hidden')) closeLightbox();
+    });
+
+    backdrop.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      zoomLightbox(e.deltaY < 0 ? 0.2 : -0.2);
+    }, { passive: false });
+
+    lbImg.addEventListener('dblclick', function () {
+      lightboxScale = lightboxScale > 1 ? 1 : 2.5;
+      lightboxTranslate = { x: 0, y: 0 };
+      applyLightboxTransform();
+    });
+
+    lbImg.addEventListener('mousedown', function (e) {
+      if (lightboxScale <= 1) return;
+      e.preventDefault();
+      lightboxDragging = true;
+      lbImg.classList.add('dragging');
+      lightboxDragStart = { x: e.clientX - lightboxTranslate.x, y: e.clientY - lightboxTranslate.y };
+    });
+    document.addEventListener('mousemove', function (e) {
+      if (!lightboxDragging) return;
+      lightboxTranslate = { x: e.clientX - lightboxDragStart.x, y: e.clientY - lightboxDragStart.y };
+      applyLightboxTransform();
+    });
+    document.addEventListener('mouseup', function () {
+      lightboxDragging = false;
+      lbImg.classList.remove('dragging');
+    });
+  }
 
   /* ---------------- Custom confirm dialog (replaces window.confirm) ---------------- */
 
@@ -864,12 +977,12 @@
     var html = '<div class="detail-photos">';
     html += '<div class="detail-photo-box">' +
       (s.PhotoUrl
-        ? '<img src="' + escapeAttr(s.PhotoUrl) + '" style="width:110px;height:140px">'
+        ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '" style="width:110px;height:140px">'
         : '<div class="no-photo" style="width:110px;height:140px">ບໍ່ມີຮູບ</div>') +
       '<span>ຮູບພາບ</span></div>';
     html += '<div class="detail-photo-box">' +
       (s.DiplomaPhotoUrl
-        ? '<img src="' + escapeAttr(s.DiplomaPhotoUrl) + '" style="width:220px;height:140px">'
+        ? '<img class="thumb-wide" src="' + escapeAttr(s.DiplomaPhotoUrl) + '" style="width:220px;height:140px">'
         : '<div class="no-photo" style="width:220px;height:140px">ບໍ່ມີຮູບໃບປະກາດ</div>') +
       '<span>ຮູບໃບປະກາດ</span></div>';
     html += '</div>';
