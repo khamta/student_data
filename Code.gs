@@ -11,7 +11,11 @@
 var SHEET_STUDENTS = 'Students';
 var SHEET_CATEGORIES = 'Categories';
 var SHEET_SETTINGS = 'Settings';
+var SHEET_PRINT_REPORT = 'ລາຍງານພິມ';
 var PHOTO_FOLDER_NAME = 'StudentPhotos_DoNotDelete';
+var REPORT_FONT_LAO = 'Phetsarath';
+var REPORT_FONT_ENG = 'Times New Roman';
+var REPORT_COLS = 17;
 
 var STUDENT_HEADERS = [
   'ID', 'Order', 'BatchNo', 'CategoryId',
@@ -120,6 +124,7 @@ function onOpen() {
   ensureSheets_();
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('ລະບົບຈັດການນັກສຶກສາ')
+    .addItem('ອັບເດດຊີດລາຍງານພິມ', 'updatePrintReportSheet')
     .addItem('ເປີດຄູ່ມືການນຳໃຊ້', 'showHelp_')
     .addToUi();
 }
@@ -426,4 +431,184 @@ function getReportData() {
   };
 
   return { groups: groups, summary: summary, grandTotal: grandTotal, settings: data.settings };
+}
+
+/* ---- Format an actual Sheet tab to look exactly like the printed report ---- */
+
+var REPORT_COL_WIDTHS = [40, 40, 50, 60, 90, 90, 150, 80, 90, 100, 80, 170, 90, 90, 90, 45, 45];
+var REPORT_LEFT_ALIGN_COLS = [5, 6, 7]; // GivenName, Surname, EnglishName
+var REPORT_ENG_COLS = [7, 12, 14]; // EnglishName, Major, CertNoEnglish
+
+function updatePrintReportSheet() {
+  var report = getReportData();
+  var st = report.settings;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_PRINT_REPORT);
+  if (sheet) {
+    sheet.clear();
+    sheet.clearFormats();
+    var maxRows = sheet.getMaxRows();
+    var maxCols = sheet.getMaxColumns();
+    if (maxRows > 0 && maxCols > 0) sheet.getRange(1, 1, maxRows, maxCols).breakApart();
+  } else {
+    sheet = ss.insertSheet(SHEET_PRINT_REPORT);
+  }
+
+  for (var c = 0; c < REPORT_COL_WIDTHS.length; c++) sheet.setColumnWidth(c + 1, REPORT_COL_WIDTHS[c]);
+
+  var row = 1;
+
+  function mergedLine(text, opts) {
+    opts = opts || {};
+    var range = sheet.getRange(row, 1, 1, REPORT_COLS);
+    range.merge();
+    range.setValue(text || '');
+    range.setFontFamily(REPORT_FONT_LAO);
+    range.setHorizontalAlignment(opts.align || 'center');
+    range.setFontWeight(opts.bold ? 'bold' : 'normal');
+    range.setFontLine(opts.underline ? 'underline' : 'none');
+    range.setFontSize(opts.fontSize || 10);
+    row++;
+    return range;
+  }
+
+  mergedLine(st.OrgLine1, { bold: true });
+  mergedLine(st.OrgLine2);
+  ['OrgLine3', 'OrgLine4', 'OrgLine5', 'OrgLine6', 'OrgLine7', 'OrgLine8'].forEach(function (k) {
+    if (st[k]) mergedLine(st[k], { align: 'left' });
+  });
+
+  row++; // spacer
+  mergedLine(st.ReportTitle, { bold: true, underline: true, fontSize: 12 });
+  if (st.ReportSubtitle) mergedLine(st.ReportSubtitle, { underline: true });
+  row++; // spacer
+
+  // ---- Table header (2 rows, with merges matching the printed report) ----
+  var h1 = row;
+  var h2 = row + 1;
+
+  function headerCell(colStart, colSpan, rowSpan, text) {
+    var range = sheet.getRange(h1, colStart, rowSpan, colSpan);
+    range.merge();
+    range.setValue(text);
+  }
+
+  headerCell(1, 1, 2, 'ລ/ດ');
+  headerCell(2, 2, 1, 'ເລກທະບຽນນັກສຶກສາ');
+  headerCell(4, 1, 2, 'ຮູບຖ່າຍ');
+  headerCell(5, 1, 2, 'ຊື່');
+  headerCell(6, 1, 2, 'ນາມສະກຸນ');
+  headerCell(7, 1, 2, 'ຊື່ແລະນາມສະກຸນ\n(ພາສາອັງກິດ)');
+  headerCell(8, 1, 2, 'ວັນເດືອນປີເກີດ');
+  headerCell(9, 1, 2, 'ບ້ານ');
+  headerCell(10, 1, 2, 'ເມືອງ/ນະຄອນ');
+  headerCell(11, 1, 2, 'ແຂວງ');
+  headerCell(12, 1, 2, 'ລະຫັດວິຊາທີ່ຮຽນ\n(ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)');
+  headerCell(13, 2, 1, 'ທະບຽນທາງວິທະຍາໄລ');
+  headerCell(15, 1, 2, 'ທະບຽນກົມການ\nສຶກສາຊັ້ນສູງ');
+  headerCell(16, 2, 1, 'ໃບປະກາດມ.ປາຍ');
+
+  sheet.getRange(h2, 13).setValue('ພາສາລາວ');
+  sheet.getRange(h2, 14).setValue('ພາສາອັງກິດ');
+  sheet.getRange(h2, 16).setValue('ມ.6');
+  sheet.getRange(h2, 17).setValue('ມ.7');
+
+  var headerRange = sheet.getRange(h1, 1, 2, REPORT_COLS);
+  headerRange.setFontFamily(REPORT_FONT_LAO);
+  headerRange.setFontWeight('bold');
+  headerRange.setHorizontalAlignment('center');
+  headerRange.setVerticalAlignment('middle');
+  headerRange.setWrap(true);
+  headerRange.setFontSize(9);
+  headerRange.setBorder(true, true, true, true, true, true);
+  row = h2 + 1;
+
+  // ---- Category groups + student rows ----
+  report.groups.forEach(function (g) {
+    if (g.students.length === 0 && report.groups.length > 1) return;
+
+    var catRange = sheet.getRange(row, 1, 1, REPORT_COLS);
+    catRange.merge();
+    catRange.setValue(g.category.Name);
+    catRange.setFontFamily(REPORT_FONT_LAO);
+    catRange.setFontWeight('bold');
+    catRange.setFontLine('underline');
+    catRange.setHorizontalAlignment('left');
+    row++;
+
+    g.students
+      .slice()
+      .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
+      .forEach(function (s) {
+        var values = [
+          s.Order, s.Order, s.BatchNo, '', s.GivenName, s.Surname, s.EnglishName,
+          s.DOB, s.Village, s.District, s.Province, s.Major,
+          s.CertNoLao, s.CertNoEnglish, s.DeptRegNo, s.DiplomaM6, s.DiplomaM7
+        ];
+        var dataRange = sheet.getRange(row, 1, 1, REPORT_COLS);
+        dataRange.setValues([values]);
+        dataRange.setFontFamily(REPORT_FONT_LAO);
+        dataRange.setHorizontalAlignment('center');
+        dataRange.setVerticalAlignment('middle');
+        dataRange.setFontSize(10);
+        dataRange.setBorder(true, true, true, true, true, true, '#cccccc', SpreadsheetApp.BorderStyle.SOLID);
+
+        REPORT_LEFT_ALIGN_COLS.forEach(function (col) {
+          sheet.getRange(row, col).setHorizontalAlignment('left');
+        });
+        REPORT_ENG_COLS.forEach(function (col) {
+          sheet.getRange(row, col).setFontFamily(REPORT_FONT_ENG);
+        });
+        if (s.PhotoUrl) {
+          sheet.getRange(row, 4).setFormula('=IMAGE("' + s.PhotoUrl + '",4,36,36)');
+        }
+        row++;
+      });
+  });
+
+  row++; // spacer
+
+  // ---- Summary rows ----
+  function summaryLine(label, total, female, bold) {
+    var a = sheet.getRange(row, 1, 1, 5); a.merge(); a.setValue(label);
+    sheet.getRange(row, 6).setValue(total);
+    var b = sheet.getRange(row, 7, 1, 3); b.merge(); b.setValue('ຄົນ, ຍິງ :');
+    sheet.getRange(row, 10).setValue(female);
+    sheet.getRange(row, 11).setValue('ຄົນ');
+    var fullRow = sheet.getRange(row, 1, 1, 11);
+    fullRow.setFontFamily(REPORT_FONT_LAO);
+    fullRow.setFontWeight(bold ? 'bold' : 'normal');
+    sheet.getRange(row, 6).setHorizontalAlignment('center');
+    sheet.getRange(row, 10).setHorizontalAlignment('center');
+    row++;
+  }
+
+  report.summary.forEach(function (s) { summaryLine(s.label, s.total, s.female, false); });
+  summaryLine(st.GrandTotalLabel, report.grandTotal.total, report.grandTotal.female, true);
+
+  row++; // spacer
+
+  // ---- Signature block ----
+  var dateRange = sheet.getRange(row, 1, 1, REPORT_COLS);
+  dateRange.merge();
+  dateRange.setValue(st.ApprovalDateLine || '');
+  dateRange.setFontFamily(REPORT_FONT_LAO);
+  dateRange.setHorizontalAlignment('right');
+  row += 2;
+
+  var leftTitle = sheet.getRange(row, 1, 1, 8);
+  leftTitle.merge();
+  leftTitle.setValue(st.ApprovalLeftTitle || '');
+  leftTitle.setFontFamily(REPORT_FONT_LAO);
+  leftTitle.setHorizontalAlignment('center');
+
+  var rightTitle = sheet.getRange(row, 9, 1, 9);
+  rightTitle.merge();
+  rightTitle.setValue(st.ApprovalRightTitle || '');
+  rightTitle.setFontFamily(REPORT_FONT_LAO);
+  rightTitle.setHorizontalAlignment('center');
+
+  sheet.setFrozenRows(0);
+  ss.setActiveSheet(sheet);
+  return { rows: row, sheetName: SHEET_PRINT_REPORT };
 }

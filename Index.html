@@ -824,6 +824,7 @@
       <div class="toolbar no-print">
         <button id="btnPrint">🖨️ ພິມ / ບັນທຶກເປັນ PDF</button>
         <button id="btnRefreshReport" class="secondary">ໂຫລດຂໍ້ມູນໃໝ່</button>
+        <button id="btnSyncSheet" class="secondary">📄 ອັບເດດລົງ Google Sheet</button>
       </div>
       <div id="reportRoot"></div>
     </div>
@@ -1550,6 +1551,25 @@
     function bindReportUI() {
       document.getElementById('btnPrint').addEventListener('click', function () { window.print(); });
       document.getElementById('btnRefreshReport').addEventListener('click', renderReport);
+      document.getElementById('btnSyncSheet').addEventListener('click', syncPrintReportSheet);
+    }
+
+    function syncPrintReportSheet() {
+      var btn = document.getElementById('btnSyncSheet');
+      btn.disabled = true;
+      btn.textContent = 'ກຳລັງອັບເດດ...';
+      google.script.run
+        .withSuccessHandler(function () {
+          btn.disabled = false;
+          btn.textContent = '📄 ອັບເດດລົງ Google Sheet';
+          showToast('ອັບເດດຊີດ "' + 'ລາຍງານພິມ' + '" ສຳເລັດແລ້ວ');
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          btn.textContent = '📄 ອັບເດດລົງ Google Sheet';
+          showError(err);
+        })
+        .updatePrintReportSheet();
     }
 
     function renderReport() {
