@@ -174,7 +174,7 @@
   }
   .photo-row { display: flex; gap: 16px; align-items: flex-start; }
   .photo-row .field:first-child { flex: 0 0 auto; }
-  .photo-row .grid-3 { flex: 1; }
+  .photo-row .grid-3, .photo-row .grid-2 { flex: 1; }
   #f_PhotoPreview.thumb { width: 64px; height: 80px; border-radius: 6px; }
   .modal-actions {
     display: flex; justify-content: flex-end; gap: 10px;
@@ -323,11 +323,8 @@
                 <img id="f_PhotoPreview" class="thumb" style="margin-top:8px;display:none">
                 <input type="hidden" id="f_PhotoUrl">
               </div>
-              <div class="grid-3">
-                <div class="field">
-                  <label>ເລກລຳດັບ (ລ/ດ)</label>
-                  <input type="number" id="f_Order" autocomplete="off" placeholder="ອັດຕະໂນມັດຖ້າປະຫວ່າງໄວ້">
-                </div>
+              <input type="hidden" id="f_Order">
+              <div class="grid-2">
                 <div class="field">
                   <label>ຮຸ່ນ (ຕົວເລກທ້າຍ)</label>
                   <input type="text" id="f_BatchNo" autocomplete="off">
@@ -651,13 +648,21 @@
     return pad3(order) + '/KBAC/KM.' + (batchNo || '');
   }
 
-  function predictNextOrder() {
-    var max = 0;
+  // ຄາດຄະເນເລກລຳດັບຫຼ້າສຸດຖ້າແຊກນັກສຶກສາໃໝ່ເຂົ້າໝວດນີ້ - ຄືກັນກັບການຄິດໄລ່
+  // ຕົວຈິງຂອງ renumberStudents_() ຝັ່ງເຊີບເວີ (ນັກສຶກສາທຸກຄົນທີ່ຢູ່ໝວດກ່ອນໜ້າ
+  // ບວກກັບຈຳນວນທີ່ຢູ່ໃນໝວດດຽວກັນ ບວກ 1).
+  function predictNextOrderForCategory(categoryId) {
+    var targetCat = STATE.categories.find(function (c) { return c.ID === categoryId; });
+    var targetSort = targetCat ? (targetCat.SortOrder || 0) : 999;
+    var countBefore = 0;
+    var countIn = 0;
     STATE.students.forEach(function (s) {
-      var n = Number(s.Order);
-      if (!isNaN(n) && n > max) max = n;
+      var c = STATE.categories.find(function (cc) { return cc.ID === s.CategoryId; });
+      var sortVal = c ? (c.SortOrder || 0) : 999;
+      if (sortVal < targetSort) countBefore++;
+      else if (s.CategoryId === categoryId) countIn++;
     });
-    return max + 1;
+    return countBefore + countIn + 1;
   }
 
   function refreshCertDefaults() {
@@ -673,10 +678,17 @@
     document.getElementById('btnCloseStudent').addEventListener('click', closeStudentModal);
     document.getElementById('btnSaveStudent').addEventListener('click', saveStudentForm);
 
-    document.getElementById('f_Order').addEventListener('input', refreshCertDefaults);
     document.getElementById('f_BatchNo').addEventListener('input', refreshCertDefaults);
     document.getElementById('f_CertNoLao').addEventListener('input', function () { certAutoFlags.lao = false; });
     document.getElementById('f_CertNoEnglish').addEventListener('input', function () { certAutoFlags.eng = false; });
+    document.getElementById('f_CategoryId').addEventListener('change', function () {
+      // ນັກສຶກສາໃໝ່ (ບໍ່ມີ f_ID) ເທົ່ານັ້ນທີ່ຈະຖືກແຊກທ້າຍໝວດອັດຕະໂນມັດ
+      // ຕາມສາຂາວິຊາທີ່ເລືອກ. ນັກສຶກສາເກົ່າຄົງລຳດັບເດີມໄວ້ຕອນຍ້າຍໝວດ.
+      if (!document.getElementById('f_ID').value) {
+        document.getElementById('f_Order').value = predictNextOrderForCategory(this.value);
+        refreshCertDefaults();
+      }
+    });
 
     bindPhotoInput('f_PhotoFile', 'f_PhotoPreview', function (base64, mime) {
       pendingPhotoBase64 = base64;
@@ -721,9 +733,10 @@
     var s = id ? STATE.students.find(function (x) { return x.ID === id; }) : null;
     document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
     document.getElementById('f_ID').value = s ? s.ID : '';
-    document.getElementById('f_Order').value = s ? s.Order || '' : predictNextOrder();
+    var initialCategoryId = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
+    document.getElementById('f_CategoryId').value = initialCategoryId;
+    document.getElementById('f_Order').value = s ? s.Order || '' : predictNextOrderForCategory(initialCategoryId);
     document.getElementById('f_BatchNo').value = s ? (s.BatchNo || currentYearSuffix()) : currentYearSuffix();
-    document.getElementById('f_CategoryId').value = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
     document.getElementById('f_GivenName').value = s ? s.GivenName || '' : '';
     document.getElementById('f_Surname').value = s ? s.Surname || '' : '';
     document.getElementById('f_EnglishName').value = s ? s.EnglishName || '' : '';
