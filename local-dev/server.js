@@ -186,8 +186,21 @@ function deleteStudent(id) {
   return getAllData();
 }
 
+function pad3(n) {
+  return String(Number(n) || 0).padStart(3, '0');
+}
+
+function computeCertNoLao(order, batchNo) {
+  return pad3(order) + '/ວຄທ/ຄມ.' + (batchNo || '');
+}
+
+function computeCertNoEnglish(order, batchNo) {
+  return pad3(order) + '/KBAC/KM.' + (batchNo || '');
+}
+
 // ຮຽງເລກລຳດັບ (Order) ໃໝ່ໃຫ້ຕໍ່ເນື່ອງ 1..N ຕາມໝວດໝູ່ (SortOrder) ກ່ອນ
 // ແລ້ວຄ່ອຍຕາມລຳດັບເດີມພາຍໃນໝວດດຽວກັນ ຄືກັບ Code.gs's renumberStudents_()
+// ທະບຽນທາງວິທະຍາໄລ (ລາວ/ອັງກິດ) ຈະຖືກຄິດໄລ່ໃໝ່ໃຫ້ຕົງກັບເລກລຳດັບຫຼ້າສຸດ.
 function renumberStudents(d) {
   const categorySortOrder = {};
   d.categories.forEach((c) => { categorySortOrder[c.ID] = c.SortOrder || 0; });
@@ -202,7 +215,11 @@ function renumberStudents(d) {
     if (oa !== ob) return oa - ob;
     return a.i - b.i;
   });
-  indexed.forEach(({ s }, idx) => { s.Order = idx + 1; });
+  indexed.forEach(({ s }, idx) => {
+    s.Order = idx + 1;
+    s.CertNoLao = computeCertNoLao(s.Order, s.BatchNo);
+    s.CertNoEnglish = computeCertNoEnglish(s.Order, s.BatchNo);
+  });
 }
 
 function saveSettings(settingsObj) {

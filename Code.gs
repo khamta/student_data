@@ -316,10 +316,26 @@ function deleteStudent(id) {
   return getAllData();
 }
 
+function pad3_(n) {
+  n = Number(n) || 0;
+  var str = String(n);
+  while (str.length < 3) str = '0' + str;
+  return str;
+}
+
+function computeCertNoLao_(order, batchNo) {
+  return pad3_(order) + '/ວຄທ/ຄມ.' + (batchNo || '');
+}
+
+function computeCertNoEnglish_(order, batchNo) {
+  return pad3_(order) + '/KBAC/KM.' + (batchNo || '');
+}
+
 /**
  * ຮຽງເລກລຳດັບ (ລ/ດ) ໃໝ່ໃຫ້ຕໍ່ເນື່ອງ 1..N ສະເໝີ ຫຼັງຈາກເພີ່ມ/ລຶບ/ແກ້ໄຂ
  * ໝວດໝູ່ - ຈັດຮຽງຕາມໝວດໝູ່ (I, II, III, IV) ກ່ອນ ແລ້ວຄ່ອຍຕາມລຳດັບເດີມ
- * ພາຍໃນໝວດດຽວກັນ ເພື່ອຄົງໝ້າຕາຂອງຕົ້ນສະບັບໄວ້.
+ * ພາຍໃນໝວດດຽວກັນ ເພື່ອຄົງໝ້າຕາຂອງຕົ້ນສະບັບໄວ້. ທະບຽນທາງວິທະຍາໄລ (ພາສາລາວ/
+ * ພາສາອັງກິດ) ຈະຖືກຄິດໄລ່ໃໝ່ໃຫ້ຕົງກັບເລກລຳດັບຫຼ້າສຸດຂອງແຕ່ລະຄົນນຳກັນ.
  */
 function renumberStudents_() {
   var s = ensureSheets_();
@@ -343,10 +359,21 @@ function renumberStudents_() {
   });
 
   var orderCol = STUDENT_HEADERS.indexOf('Order') + 1;
+  var certLaoCol = STUDENT_HEADERS.indexOf('CertNoLao') + 1;
+  var certEngCol = STUDENT_HEADERS.indexOf('CertNoEnglish') + 1;
+
   students.forEach(function (st, idx) {
     var newOrder = idx + 1;
     if (Number(st.Order) !== newOrder) {
       sheet.getRange(st._row, orderCol).setValue(newOrder);
+    }
+    var expectedCertLao = computeCertNoLao_(newOrder, st.BatchNo);
+    var expectedCertEng = computeCertNoEnglish_(newOrder, st.BatchNo);
+    if (st.CertNoLao !== expectedCertLao) {
+      sheet.getRange(st._row, certLaoCol).setValue(expectedCertLao);
+    }
+    if (st.CertNoEnglish !== expectedCertEng) {
+      sheet.getRange(st._row, certEngCol).setValue(expectedCertEng);
     }
   });
 }
