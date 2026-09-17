@@ -480,11 +480,46 @@
 
   var pendingPhotoBase64 = null;
   var pendingPhotoMime = null;
+  var certAutoFlags = { lao: true, eng: true };
+
+  function pad3(n) {
+    n = Number(n) || 0;
+    return String(n).padStart(3, '0');
+  }
+
+  function computeCertNoLao(order, batchNo) {
+    return pad3(order) + '/ວຄທ/ຄມ.' + (batchNo || '');
+  }
+
+  function computeCertNoEnglish(order, batchNo) {
+    return pad3(order) + '/KBAC/KM.' + (batchNo || '');
+  }
+
+  function predictNextOrder() {
+    var max = 0;
+    STATE.students.forEach(function (s) {
+      var n = Number(s.Order);
+      if (!isNaN(n) && n > max) max = n;
+    });
+    return max + 1;
+  }
+
+  function refreshCertDefaults() {
+    var order = document.getElementById('f_Order').value;
+    var batch = document.getElementById('f_BatchNo').value;
+    if (certAutoFlags.lao) document.getElementById('f_CertNoLao').value = computeCertNoLao(order, batch);
+    if (certAutoFlags.eng) document.getElementById('f_CertNoEnglish').value = computeCertNoEnglish(order, batch);
+  }
 
   function bindStudentModal() {
     document.getElementById('btnAddStudent').addEventListener('click', function () { openStudentModal(null); });
     document.getElementById('btnCancelStudent').addEventListener('click', closeStudentModal);
     document.getElementById('btnSaveStudent').addEventListener('click', saveStudentForm);
+
+    document.getElementById('f_Order').addEventListener('input', refreshCertDefaults);
+    document.getElementById('f_BatchNo').addEventListener('input', refreshCertDefaults);
+    document.getElementById('f_CertNoLao').addEventListener('input', function () { certAutoFlags.lao = false; });
+    document.getElementById('f_CertNoEnglish').addEventListener('input', function () { certAutoFlags.eng = false; });
 
     document.getElementById('f_PhotoFile').addEventListener('change', function (e) {
       var file = e.target.files[0];
@@ -508,7 +543,7 @@
     var s = id ? STATE.students.find(function (x) { return x.ID === id; }) : null;
     document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
     document.getElementById('f_ID').value = s ? s.ID : '';
-    document.getElementById('f_Order').value = s ? s.Order || '' : '';
+    document.getElementById('f_Order').value = s ? s.Order || '' : predictNextOrder();
     document.getElementById('f_BatchNo').value = s ? (s.BatchNo || currentYearSuffix()) : currentYearSuffix();
     document.getElementById('f_CategoryId').value = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
     document.getElementById('f_GivenName').value = s ? s.GivenName || '' : '';
@@ -519,8 +554,10 @@
     document.getElementById('f_Village').value = s ? s.Village || '' : '';
     document.getElementById('f_District').value = s ? s.District || '' : '';
     document.getElementById('f_Province').value = s ? s.Province || '' : '';
+    certAutoFlags = { lao: !(s && s.CertNoLao), eng: !(s && s.CertNoEnglish) };
     document.getElementById('f_CertNoLao').value = s ? s.CertNoLao || '' : '';
     document.getElementById('f_CertNoEnglish').value = s ? s.CertNoEnglish || '' : '';
+    refreshCertDefaults();
     document.getElementById('f_DeptRegNo').value = s ? s.DeptRegNo || '' : '';
     document.getElementById('f_DiplomaM6').value = s ? s.DiplomaM6 || '' : '';
     document.getElementById('f_DiplomaM7').value = s ? s.DiplomaM7 || '' : '';
