@@ -258,7 +258,7 @@
           </div>
           <div class="field">
             <label>ຮຸ່ນ (ຕົວເລກທ້າຍ)</label>
-            <input type="text" id="f_BatchNo" placeholder="25" value="25">
+            <input type="text" id="f_BatchNo">
           </div>
         </div>
         <div class="grid-3">
@@ -407,6 +407,11 @@
     return (c.Name || '').replace(/^[IVX]+\.\s*ຊັ້ນສູງ\s*/, '');
   }
 
+  // ເລກປີ ค.ศ. ปัจจุบัน 2 ตัวท้าย เช่น 2026 -> "26"
+  function currentYearSuffix() {
+    return String(new Date().getFullYear() % 100).padStart(2, '0');
+  }
+
   /* ---------------- Student list ---------------- */
 
   function renderCategoryOptions() {
@@ -504,7 +509,7 @@
     document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
     document.getElementById('f_ID').value = s ? s.ID : '';
     document.getElementById('f_Order').value = s ? s.Order || '' : '';
-    document.getElementById('f_BatchNo').value = s ? s.BatchNo || '25' : '25';
+    document.getElementById('f_BatchNo').value = s ? (s.BatchNo || currentYearSuffix()) : currentYearSuffix();
     document.getElementById('f_CategoryId').value = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
     document.getElementById('f_GivenName').value = s ? s.GivenName || '' : '';
     document.getElementById('f_Surname').value = s ? s.Surname || '' : '';

@@ -130,6 +130,10 @@ function randomId() {
   return crypto.randomUUID();
 }
 
+function currentYearSuffix() {
+  return String(new Date().getFullYear() % 100).padStart(2, '0');
+}
+
 /* ---------------- Mock of Code.gs's public functions ---------------- */
 
 function getAllData() {
@@ -164,7 +168,7 @@ function upsertStudent(student) {
     student.CreatedAt = now;
     student.UpdatedAt = now;
     if (!student.Order) student.Order = nextOrder(d.students);
-    if (!student.BatchNo) student.BatchNo = '25';
+    if (!student.BatchNo) student.BatchNo = currentYearSuffix();
     d.students.push(student);
   }
   saveData(d);

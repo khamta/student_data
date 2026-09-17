@@ -279,13 +279,18 @@ function upsertStudent(student) {
     student.CreatedAt = now;
     student.UpdatedAt = now;
     if (!student.Order) student.Order = getNextOrder_(sheet);
-    if (!student.BatchNo) student.BatchNo = '25';
+    if (!student.BatchNo) student.BatchNo = currentYearSuffix_();
     var newRow = STUDENT_HEADERS.map(function (h) {
       return student[h] !== undefined ? student[h] : '';
     });
     sheet.appendRow(newRow);
   }
   return getAllData();
+}
+
+function currentYearSuffix_() {
+  var yy = new Date().getFullYear() % 100;
+  return (yy < 10 ? '0' : '') + yy;
 }
 
 function getNextOrder_(sheet) {
