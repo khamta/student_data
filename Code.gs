@@ -1,5 +1,5 @@
 /**
- * ระบบจัดการທຳນຽບຜູ້ສຳເລັດການສຶກສາ (Graduate Registry Manager)
+ * ລະບົບຈັດການທຳນຽບຜູ້ສຳເລັດການສຶກສາ (Graduate Registry Manager)
  * Google Apps Script web app bound to a Google Sheet.
  *
  * Sheets used (auto-created on first run):
@@ -14,28 +14,91 @@ var SHEET_SETTINGS = 'Settings';
 var PHOTO_FOLDER_NAME = 'StudentPhotos_DoNotDelete';
 
 var STUDENT_HEADERS = [
-  'ID', 'Order', 'CategoryId', 'StudentCode', 'Rank', 'LaoName', 'EnglishName',
-  'DOB', 'Village', 'District', 'Province', 'Major',
-  'CertNoLao', 'CertNoEnglish', 'DiplomaM6', 'DiplomaM7', 'Gender', 'PhotoUrl',
+  'ID', 'Order', 'BatchNo', 'CategoryId',
+  'GivenName', 'Surname', 'EnglishName',
+  'DOB', 'Village', 'District', 'Province',
+  'Major',
+  'CertNoLao', 'CertNoEnglish', 'DeptRegNo',
+  'DiplomaM6', 'DiplomaM7',
+  'Gender', 'PhotoUrl',
   'CreatedAt', 'UpdatedAt'
 ];
 
-var CATEGORY_HEADERS = ['ID', 'Name', 'SortOrder'];
+var CATEGORY_HEADERS = ['ID', 'Name', 'SortOrder', 'SummaryLabel'];
 var SETTINGS_HEADERS = ['Key', 'Value'];
 
 var DEFAULT_SETTINGS = [
   ['OrgLine1', 'ສາທາລະນະລັດ ປະຊາທິປະໄຕ ປະຊາຊົນລາວ'],
   ['OrgLine2', 'ສັນຕິພາບ ເອກະລາດ ປະຊາທິປະໄຕ ເອກະພາບ ວັດທະນະຖາວອນ'],
-  ['OrgLine3', 'ກະຊວງສຶກສາທິການ ແລະ ກີລາ'],
-  ['OrgLine4', 'ກົມສະຫງວນສຶກສາ'],
-  ['OrgLine5', 'ພະແນກສຶກສາທິການ ແລະ ກີລາແຂວງ'],
-  ['OrgLine6', 'ວິທະຍາໄລ ຄຳໝັ້ນ ບໍລິຫານທຸລະກິດ ຄຳມ່ວນ'],
-  ['OrgLine7', 'ໂທລະສັບ: 020 55994488'],
-  ['ReportTitle', 'ບັນຊີລາຍຊື່ນັກສຶກສາທີ່ຈະໄດ້ຮັບໃບປະກາດສະນີຍະບັດ ສົກຮຽນ 2024-2025'],
-  ['ReportSubtitle', 'ຈັດຮຽງຕາມສາຂາວິຊາ, ພາກຮຽນ ແລະ ໄວທິ'],
-  ['ApprovalLeft', 'ຄຳມ່ວນ, ວັນທີ .......................'],
-  ['ApprovalRightTitle', 'ຫົວໜ້າພະແນກສຶກສາທິການ ແລະ ກີລາແຂວງ'],
-  ['ApprovalLeftTitle', 'ຜູ້ອຳນວຍການວິທະຍາໄລ']
+  ['OrgLine3', 'ກະຊວງສຶກສາທິການ ແລະ ກິລາ'],
+  ['OrgLine4', 'ກົມອາຊີວະສຶກສາ'],
+  ['OrgLine5', 'ພະແນກສຶກສາທິການ ແລະ ກິລາແຂວງ'],
+  ['OrgLine6', 'ຄໍາມ່ວນ'],
+  ['OrgLine7', 'ວິທະຍາໄລ ຄໍາສີສຸກ ບໍລິຫານທຸລະກິດ ຄໍາມ່ວນ'],
+  ['OrgLine8', 'ໂທລະສັບ: 020 55994488'],
+  ['ReportTitle', 'ລາຍຊື່ນັກສຶກສາທີ່ຈະຮັບ ໃບປະກາດສະນີຍະບັດ ສົກຮຽນ 2024-2025'],
+  ['ReportSubtitle', 'ສາຂາບໍລິຫານທຸລະກິດ,ພາສາອັງກິດທຸລະກິດ ແລະ ໄອທີ'],
+  ['GrandTotalLabel', 'ລວມນັກສຶກສາຊັ້ນສູງທັງໝົດ:'],
+  ['ApprovalDateLine', 'ຄໍາມ່ວນ,ວັນທີ ......................................'],
+  ['ApprovalLeftTitle', 'ຫົວໜ້າພະແນກສຶກສາທິການ ແລະ ກິລາແຂວງ'],
+  ['ApprovalRightTitle', 'ຜູ້ອໍານວຍການວິທະຍາໄລ ຄໍາສີສຸກ ບໍລິຫານທຸລະກິດ']
+];
+
+var DEFAULT_CATEGORIES = [
+  ['cat-1', 'I. ຊັ້ນສູງ ບໍລິຫານທຸລະກິດ', 1, 'ສາຍບໍລິຫານທຸລະກິດ'],
+  ['cat-2', 'II. ຊັ້ນສູງ ວິທະຍາສາດຄອມພິວເຕີ ແລະ ຂໍ້ມູນຂ່າວສານ(ໄອທີ)', 2, 'ສາຍໄອທີ'],
+  ['cat-3', 'III. ຊັ້ນສູງ ພາສາອັງກິດທຸລະກິດ', 3, 'ສາຍພາສາອັງກິດ ທຸລະກິດ'],
+  ['cat-4', 'IV. ຊັ້ນສູງ ການເງິນ-ການບັນຊີ', 4, 'ສາຍການເງິນ-ການບັນຊີ']
+];
+
+// ຂໍ້ມູນນັກສຶກສາຕົວຈິງ, ຖອດຈາກ PDF ຕົ້ນສະບັບ (2024-2025) ເພື່ອໃຫ້ຊີດເລີ່ມຕົ້ນ
+// ມີຂໍ້ມູນຄົບຖ້ວນທັນທີ. ລຳດັບຄໍລໍາ:
+// [Order, BatchNo, CategoryId, GivenName, Surname, EnglishName, DOB, Village,
+//  District, Province, Major, CertNoLao, CertNoEnglish, DeptRegNo,
+//  DiplomaM6, DiplomaM7, Gender]
+var DEFAULT_STUDENTS = [
+  [1, '25', 'cat-1', 'ທ້າວ ສີສະມຸດ', 'ເພັງທະລັງສີ', 'Mr. Sisamoud PHENGTHALANGSY', '24.02.2003', 'ດອນເຄື່ອນຊາງ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Bussiness Administration', '001/ວຄທ/ຄມ.25', '001/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [2, '25', 'cat-1', 'ທ້າວ ເທບອຸໄທ', 'ພະໄຊຈະເລີນ', 'Mr. Thepouthai PHASAICHALERN', '13.01.2001', 'ດອນໂດນ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Bussiness Administration', '002/ວຄທ/ຄມ.25', '002/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [3, '25', 'cat-1', 'ທ້າວ ພິລະພົນ', 'ໄຊສິດທິເດດ', 'Mr. Philaphon XAISIDTHIDATE', '13.02.2002', 'ປາກດົງ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Bussiness Administration', '003/ວຄທ/ຄມ.25', '003/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [4, '25', 'cat-1', 'ນາງ ໂມນາ', 'ພົນສະຫວັດ', 'Miss. Mona PHONSAVATH', '03.12.1999', 'ໂນນແກ້ວ', 'ສີໂຄດຕະບອງ', 'ນະຄອນຫຼວງວຽງຈັນ', 'Bussiness Administration', '004/ວຄທ/ຄມ.25', '004/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [5, '25', 'cat-1', 'ທ້າວ ເມກພະຈັນ', 'ທໍາມະວົງສາ', 'Mr. Mekphachanh THAMMAVONGSA', '01.08.2005', 'ວັດນາກ', 'ສີສັດຕະນະ', 'ນະຄອນຫຼວງວຽງຈັນ', 'Bussiness Administration', '005/ວຄທ/ຄມ.25', '005/KBAC/KM.25', '', '', 'ມ7', 'M'],
+
+  [6, '25', 'cat-2', 'ນາງ ຕຸກຕາ', 'ແກ້ວປັນຍາ', 'Miss. Toukta KEOPUNYA', '08.05.2002', 'ສີວິໄລ', 'ໄຊບົວທອງ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '006/ວຄທ/ຄມ.25', '006/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [7, '25', 'cat-2', 'ນາງ ເພັດອຸໄທ', 'ແກ້ວມະນີ', 'Miss. Phetouthai KEOMANY', '09.04.2003', 'ໂພນສະໜາມ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '007/ວຄທ/ຄມ.25', '007/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [8, '25', 'cat-2', 'ນາງ ສຸພານັນ', 'ພົນອາສາ', 'Miss. Souphanun PHONASA', '04.06.2001', 'ດອນໂດນ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '008/ວຄທ/ຄມ.25', '008/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [9, '25', 'cat-2', 'ນາງ ທິບປາພອນ', 'ຈັນດາເຮືອງ', 'Miss. Thippaphone CHANDAHEUANG', '19.12.2003', 'ວຽງວິໄລ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '009/ວຄທ/ຄມ.25', '009/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [10, '25', 'cat-2', 'ນາງ ນິລາກອນ', 'ສີຫາວົງ', 'Miss. Nilarkone SIHAVONG', '14.12.2003', 'ສຸກສະຫວັນ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '010/ວຄທ/ຄມ.25', '010/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [11, '25', 'cat-2', 'ທ້າວ ວິໄລສັກ', 'ໄຊສົມບັດ', 'Mr. Vilaisack XAISOMBATH', '25.05.2000', 'ຈອມແຈ້ງ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '011/ວຄທ/ຄມ.25', '011/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [12, '25', 'cat-2', 'ພຣະ ຈັນຫອມ', 'ສີບຸນເຮືອງ', 'Monk. Chanhome SEEBOUNHEUANG', '24.05.2005', 'ໄຊສົມບູນ', 'ຫີນບູນ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '012/ວຄທ/ຄມ.25', '012/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [13, '25', 'cat-2', 'ທ້າວ ຊົມມາ', 'ພິວທໍາມະວົງ', 'Mr. Zomma PHIWTHAMMAVONG', '02.09.2003', 'ສອງຫ້ອງ', 'ອາດສະພອນ', 'ສະຫວັນນະເຂດ', 'Computer Science and Information Technology', '013/ວຄທ/ຄມ.25', '013/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [14, '25', 'cat-2', 'ພຣະ ຕຸກ', 'ຫອມສົມບັດ', 'Monk. Touk HOMSOMBUT', '11.02.1999', 'ຖໍ້າ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '014/ວຄທ/ຄມ.25', '014/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [15, '25', 'cat-2', 'ທ້າວ ເມົາ', 'ບຸຝັບ', 'Mr. Mao BUPHUB', '03.05.2002', 'ບຶງຫົວນາ', 'ເຊບັ້ງໄຟ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '015/ວຄທ/ຄມ.25', '015/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [16, '25', 'cat-2', 'ທ້າວ ເກສອນ', 'ພົມມະຈັນ', 'Mr. Kesone PHOMMACHAN', '24.02.2003', 'ນາມັນປາ', 'ໜອງບົກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '016/ວຄທ/ຄມ.25', '016/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [17, '25', 'cat-2', 'ທ້າວ ອານຸພາບ', 'ແອນທອງແດງ', 'Mr. Anouphap AENTHONGDENG', '22.05.2003', 'ໂພນສະອາດ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '017/ວຄທ/ຄມ.25', '017/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [18, '25', 'cat-2', 'ນາງ ພອນທະວີ', 'ໂຄດພູທອນ', 'Miss. Phonethavy KHODPHOUTHONE', '13.04.1994', 'ນາໂດນ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '018/ວຄທ/ຄມ.25', '018/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [19, '25', 'cat-2', 'ນາງ ກັນຍາລັດ', 'ຈັນທະວີໄຊ', 'Miss. Kanyalat CHANTHAVYXAI', '17.02.2004', 'ໂພນຄໍາ', 'ຍົມມະລາດ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '019/ວຄທ/ຄມ.25', '019/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [20, '25', 'cat-2', 'ທ້າວ ກະແຕ', 'ພູດາວົງ', 'Mr. Katae PHOUDAVONG', '03.03.2000', 'ບຶງນາ', 'ຍົມມະລາດ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '020/ວຄທ/ຄມ.25', '020/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [21, '25', 'cat-2', 'ທ້າວ ໂຈນັດ', 'ໜໍ່ວັງ', 'Mr. Jonut NORVANG', '21.03.2003', 'ຈອມແກ້ວ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '021/ວຄທ/ຄມ.25', '021/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [22, '25', 'cat-2', 'ທ້າວ ໄຊສົມພອນ', 'ພຣະຄິ່ນ', 'Mr. Saysomphone PHRAKHINE', '04.01.2002', 'ໜອງບອນ', 'ໄຊເສດຖາ', 'ນະຄອນຫຼວງວຽງຈັນ', 'Computer Science and Information Technology', '022/ວຄທ/ຄມ.25', '022/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [23, '25', 'cat-2', 'ທ້າວ ທຸງໄຊ', 'ສິດທິເດດ', 'Mr. Thoungxay SIDTHIDATE', '18.12.2001', 'ໂພນສະໜາມ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Computer Science and Information Technology', '023/ວຄທ/ຄມ.25', '023/KBAC/KM.25', '', '', 'ມ7', 'M'],
+
+  [24, '25', 'cat-3', 'ພຣະ ຈໍາປາ', 'ແກ້ວບົວລາ', 'Monk. Champa KEOBUALA', '11.03.2000', 'ນາພະນັງ', 'ບົວລະພາ', 'ຄໍາມ່ວນ', 'Business English', '024/ວຄທ/ຄມ.25', '024/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [25, '25', 'cat-3', 'ນາງ ລວຍຄໍາ', 'ໄຊສິງເຂັ້ມ', 'Miss. Luaykham XAYSINGKHEM', '18.04.2000', 'ນາພະນັງ', 'ບົວລະພາ', 'ຄໍາມ່ວນ', 'Business English', '025/ວຄທ/ຄມ.25', '025/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [26, '25', 'cat-3', 'ນາງ ລີວັນ', 'ຈັນທະປັນຍາ', 'Miss. Lyvanh CHANTAPHANYA', '29.12.2002', 'ໂພນສະອາດ', 'ມະຫາໄຊ', 'ຄໍາມ່ວນ', 'Business English', '026/ວຄທ/ຄມ.25', '026/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [27, '25', 'cat-3', 'ນາງ ນຸນຕາ', 'ຈັນມະນີ', 'Miss. Nounta CHANMANY', '03.02.2006', 'ນາຂ່າງຄໍາ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Business English', '027/ວຄທ/ຄມ.25', '027/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [28, '25', 'cat-3', 'ທ້າວ ວີວັນ', 'ຄໍາສວນຊູ', 'Mr. Vyvanh KHOMESOUANEZOO', '12.12.2000', 'ລະຍາວເໜືອ', 'ສາມັກຄີໄຊ', 'ອັດຕະປື', 'Business English', '028/ວຄທ/ຄມ.25', '028/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [29, '25', 'cat-3', 'ທ້າວ ຊິນນະວຸດ', 'ສິນທະວົງ', 'Mr. Zinnavout SINTHAVONG', '14.10.2002', 'ສົມສະໜຸກ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Business English', '029/ວຄທ/ຄມ.25', '029/KBAC/KM.25', '', '', 'ມ7', 'M'],
+
+  [30, '25', 'cat-4', 'ນາງ ເກດສະໝອນ', 'ລວນມະໄລສີ', 'Miss. Kedsamone LOUANEMALAISY', '11.05.2002', 'ນາກາງ', 'ຄູນຄໍາ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '030/ວຄທ/ຄມ.25', '030/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [31, '25', 'cat-4', 'ນາງ ພອນປະເສີດ', 'ພູມີຈັນ', 'Miss. Phonepasurth PHOUMECHAN', '18.02.2002', 'ຫົວນາ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '031/ວຄທ/ຄມ.25', '031/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [32, '25', 'cat-4', 'ນາງ ກັ້ງນະພາ', 'ໃບຫຼວງລາດ', 'Miss. Kangnapha BAILOUNGLATH', '03.03.2003', 'ດົງກະແສນ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '032/ວຄທ/ຄມ.25', '032/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [33, '25', 'cat-4', 'ນາງ ມອດຊີ', 'ກອງມະນີ', 'Miss. Mothzee KONGMANEE', '07.08.2001', 'ໂພນສະໜາມ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '033/ວຄທ/ຄມ.25', '033/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [34, '25', 'cat-4', 'ນາງ ສຸດດາລາ', 'ພົມມະແສນ', 'Miss. Souddala PHOMMASAEN', '08.05.2002', 'ໜອງບົວຄໍາ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '034/ວຄທ/ຄມ.25', '034/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [35, '25', 'cat-4', 'ນາງ ນໍ້າຝົນ', 'ເດດສັກດາ', 'Miss. Namfon DATSUCKDA', '24.07.2003', 'ຄໍາແກ້ວ', 'ຫີນບູນ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '035/ວຄທ/ຄມ.25', '035/KBAC/KM.25', '', '', 'ມ7', 'F'],
+  [36, '25', 'cat-4', 'ທ້າວ ໄມສີ', 'ສີຫາລາດ', 'Mr. Maisee SEEHALARD', '01.07.2004', 'ນໍ້າເດື່ອ', 'ປາກກະດິງ', 'ບໍລິຄໍາໄຊ', 'Finanec-Accounting', '036/ວຄທ/ຄມ.25', '036/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [37, '25', 'cat-4', 'ທ້າວ ບຸນໂຮມ', 'ອິນທິລາດ', 'Mr. Bounhome INTHILATH', '11.05.1991', 'ຫາດຊຽງດີ', 'ໜອງບົກ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '037/ວຄທ/ຄມ.25', '037/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [38, '25', 'cat-4', 'ທ້າວ ໄຊຈະເລີນ', 'ອິນແກ້ວມະນີວົງ', 'Mr. Saychaleun INKEOMANIVONG', '23.10.1995', 'ໜອງບົວເງິນ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '038/ວຄທ/ຄມ.25', '038/KBAC/KM.25', '', '', 'ມ7', 'M'],
+  [39, '25', 'cat-4', 'ທ້າວ ທະວີຊັບ', 'ສຸແສງໄທ', 'Mr. Thaveexub SOUSENGTHAY', '15.03.2003', 'ດອນເຄື່ອນຊາງ', 'ທ່າແຂກ', 'ຄໍາມ່ວນ', 'Finanec-Accounting', '039/ວຄທ/ຄມ.25', '039/KBAC/KM.25', '', '', 'ມ7', 'M']
 ];
 
 /* ---------------- Web app entry point ---------------- */
@@ -73,20 +136,35 @@ function showHelp_() {
 function ensureSheets_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  var studentsSheet = ss.getSheetByName(SHEET_STUDENTS);
-  if (!studentsSheet) {
-    studentsSheet = ss.insertSheet(SHEET_STUDENTS);
-    studentsSheet.appendRow(STUDENT_HEADERS);
-    studentsSheet.setFrozenRows(1);
-  }
-
   var categoriesSheet = ss.getSheetByName(SHEET_CATEGORIES);
   if (!categoriesSheet) {
     categoriesSheet = ss.insertSheet(SHEET_CATEGORIES);
     categoriesSheet.appendRow(CATEGORY_HEADERS);
     categoriesSheet.setFrozenRows(1);
-    categoriesSheet.appendRow(['cat-1', 'I. ສາຂາບໍລິຫານທຸລະກິດ', 1]);
-    categoriesSheet.appendRow(['cat-2', 'II. ສາຂາວິທະຍາສາດຄອມພິວເຕີ ແລະ ສິ່ງແວດລ້ອມ', 2]);
+    DEFAULT_CATEGORIES.forEach(function (row) { categoriesSheet.appendRow(row); });
+  }
+
+  var studentsSheet = ss.getSheetByName(SHEET_STUDENTS);
+  if (!studentsSheet) {
+    studentsSheet = ss.insertSheet(SHEET_STUDENTS);
+    studentsSheet.appendRow(STUDENT_HEADERS);
+    studentsSheet.setFrozenRows(1);
+    var now = new Date();
+    DEFAULT_STUDENTS.forEach(function (row) {
+      var order = row[0];
+      var student = {
+        Order: row[0], BatchNo: row[1], CategoryId: row[2],
+        GivenName: row[3], Surname: row[4], EnglishName: row[5],
+        DOB: row[6], Village: row[7], District: row[8], Province: row[9],
+        Major: row[10], CertNoLao: row[11], CertNoEnglish: row[12], DeptRegNo: row[13],
+        DiplomaM6: row[14], DiplomaM7: row[15], Gender: row[16]
+      };
+      student.ID = 'stu-' + Utilities.getUuid();
+      student.CreatedAt = now;
+      student.UpdatedAt = now;
+      var newRow = STUDENT_HEADERS.map(function (h) { return student[h] !== undefined ? student[h] : ''; });
+      studentsSheet.appendRow(newRow);
+    });
   }
 
   var settingsSheet = ss.getSheetByName(SHEET_SETTINGS);
@@ -200,6 +278,7 @@ function upsertStudent(student) {
     student.CreatedAt = now;
     student.UpdatedAt = now;
     if (!student.Order) student.Order = getNextOrder_(sheet);
+    if (!student.BatchNo) student.BatchNo = '25';
     var newRow = STUDENT_HEADERS.map(function (h) {
       return student[h] !== undefined ? student[h] : '';
     });
@@ -237,15 +316,20 @@ function upsertCategory(category) {
   if (category.ID) {
     var row = findRowById_(sheet, CATEGORY_HEADERS, category.ID);
     if (row === -1) throw new Error('ไม่พบหมวดหมู่');
-    sheet.getRange(row, 1, 1, CATEGORY_HEADERS.length)
-      .setValues([[category.ID, category.Name, category.SortOrder || 0]]);
+    var existingRow = sheet.getRange(row, 1, 1, CATEGORY_HEADERS.length).getValues()[0];
+    var merged = CATEGORY_HEADERS.map(function (h, idx) {
+      return category[h] !== undefined ? category[h] : existingRow[idx];
+    });
+    sheet.getRange(row, 1, 1, CATEGORY_HEADERS.length).setValues([merged]);
   } else {
     category.ID = 'cat-' + Utilities.getUuid();
     if (!category.SortOrder) {
       var existing = sheetToObjects_(sheet, CATEGORY_HEADERS);
       category.SortOrder = existing.length + 1;
     }
-    sheet.appendRow([category.ID, category.Name, category.SortOrder]);
+    if (!category.SummaryLabel) category.SummaryLabel = category.Name;
+    var newRow = CATEGORY_HEADERS.map(function (h) { return category[h] !== undefined ? category[h] : ''; });
+    sheet.appendRow(newRow);
   }
   return getAllData();
 }
@@ -255,7 +339,7 @@ function deleteCategory(id) {
   var inUse = sheetToObjects_(s.studentsSheet, STUDENT_HEADERS)
     .some(function (st) { return st.CategoryId === id; });
   if (inUse) {
-    throw new Error('ไม่สามารถลบໝວດໝູ່ນີ້ໄດ້: ຍັງມີນັກສຶກສາຢູ່ໃນໝວດນີ້');
+    throw new Error('ไม่สามารถลบหมวดหมู่นี้ได้: ยังมีนักศึกษาอยู่ในหมวดนี้');
   }
   var row = findRowById_(s.categoriesSheet, CATEGORY_HEADERS, id);
   if (row === -1) throw new Error('ไม่พบหมวดหมู่');
@@ -291,7 +375,7 @@ function getReportData() {
     .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
     .forEach(function (st) {
       if (!byCategory[st.CategoryId]) {
-        byCategory[st.CategoryId] = { category: { ID: st.CategoryId, Name: '(ไม่ระบุหมวดหมู่)', SortOrder: 999 }, students: [] };
+        byCategory[st.CategoryId] = { category: { ID: st.CategoryId, Name: '(ບໍ່ລະບຸ)', SortOrder: 999, SummaryLabel: '(ບໍ່ລະບຸ)' }, students: [] };
       }
       byCategory[st.CategoryId].students.push(st);
     });
@@ -301,15 +385,13 @@ function getReportData() {
     .sort(function (a, b) { return (a.category.SortOrder || 0) - (b.category.SortOrder || 0); });
 
   var summary = groups.map(function (g) {
-    var male = g.students.filter(function (s) { return s.Gender === 'M'; }).length;
     var female = g.students.filter(function (s) { return s.Gender === 'F'; }).length;
-    return { name: g.category.Name, male: male, female: female, total: g.students.length };
+    return { label: g.category.SummaryLabel || g.category.Name, total: g.students.length, female: female };
   });
 
   var grandTotal = {
-    male: summary.reduce(function (a, s) { return a + s.male; }, 0),
-    female: summary.reduce(function (a, s) { return a + s.female; }, 0),
-    total: summary.reduce(function (a, s) { return a + s.total; }, 0)
+    total: summary.reduce(function (a, s) { return a + s.total; }, 0),
+    female: summary.reduce(function (a, s) { return a + s.female; }, 0)
   };
 
   return { groups: groups, summary: summary, grandTotal: grandTotal, settings: data.settings };

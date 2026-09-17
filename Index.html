@@ -54,7 +54,7 @@
     border-bottom: 1px solid var(--bg);
     margin-bottom: -1px;
   }
-  .page { padding: 18px 20px; max-width: 1300px; margin: 0 auto; }
+  .page { padding: 18px 20px; max-width: 1400px; margin: 0 auto; }
   .hidden { display: none !important; }
 
   .toolbar {
@@ -121,7 +121,7 @@
   }
   .modal {
     background: #fff; border-radius: 10px; padding: 20px;
-    max-width: 720px; width: 100%;
+    max-width: 760px; width: 100%;
   }
   .modal h2 { margin-top: 0; font-size: 16px; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
@@ -139,25 +139,32 @@
   .empty-state { text-align: center; color: #888; padding: 30px; }
 
   /* ---- Printable report ---- */
-  #reportRoot { background: #fff; padding: 20px; }
+  #reportRoot { background: #fff; padding: 24px; font-size: 13px; }
+  #reportRoot table { font-size: 11px; }
   .report-header { text-align: center; margin-bottom: 6px; line-height: 1.5; }
-  .report-title { font-weight: 700; text-decoration: underline; margin: 14px 0 4px; text-align: center; }
-  .report-subtitle { text-align: center; text-decoration: underline; margin-bottom: 10px; }
-  .category-heading { font-weight: 700; text-decoration: underline; margin: 16px 0 6px; text-align: left; }
-  .summary-table td, .summary-table th { text-align: left; }
-  .summary-table td.num { text-align: center; width: 70px; }
-  .sign-row { display: flex; justify-content: space-between; margin-top: 40px; padding: 0 40px; }
+  .report-header .org-left { text-align: left; }
+  .report-header-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .report-title { font-weight: 700; text-decoration: underline; margin: 16px 0 4px; text-align: center; }
+  .report-subtitle { text-decoration: underline; margin-bottom: 12px; text-align: center; }
+  .category-heading { font-weight: 700; text-decoration: underline; margin: 14px 0 4px; text-align: left; }
+  .summary-block { margin-top: 18px; }
+  .summary-row { display: grid; grid-template-columns: 260px 60px 90px 60px 40px; gap: 4px; font-weight: 700; }
+  .summary-row div:nth-child(2), .summary-row div:nth-child(4) { text-align: center; }
+  .sign-date { text-align: right; margin: 30px 0 0; }
+  .sign-row { display: flex; justify-content: space-between; margin-top: 10px; }
+  .sign-row div { text-align: center; max-width: 320px; }
 
   @media print {
     .no-print { display: none !important; }
     .page { padding: 0; max-width: none; }
     body { background: #fff; }
     #reportRoot { padding: 0; }
-    table { font-size: 11px; }
+    table { font-size: 10px; }
   }
 
   @media (max-width: 800px) {
     .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .report-header-grid { grid-template-columns: 1fr; }
   }
   </style>
 </head>
@@ -182,7 +189,7 @@
     <!-- ================= LIST TAB ================= -->
     <div id="tab-list" class="tab-panel">
       <div class="toolbar">
-        <input id="searchInput" type="text" placeholder="ຄົ້ນຫາຊື່, ລະຫັດ, ບ້ານ...">
+        <input id="searchInput" type="text" placeholder="ຄົ້ນຫາຊື່, ນາມສະກຸນ, ບ້ານ...">
         <select id="filterCategory"><option value="">ທຸກໝວດໝູ່</option></select>
         <button id="btnAddStudent">+ ເພີ່ມນັກສຶກສາ</button>
       </div>
@@ -190,7 +197,7 @@
         <table id="studentTable">
           <thead>
             <tr>
-              <th>ລ/ດ</th><th>ຮູບ</th><th>ລະຫັດນັກສຶກສາ</th><th>ຊື່ ແລະ ນາມສະກຸນ</th>
+              <th>ລ/ດ</th><th>ຮູບ</th><th>ຊື່</th><th>ນາມສະກຸນ</th><th>ຊື່ (ພາສາອັງກິດ)</th>
               <th>ວັນເດືອນປີເກີດ</th><th>ບ້ານ</th><th>ໝວດໝູ່ / ສາຂາວິຊາ</th><th>ຈັດການ</th>
             </tr>
           </thead>
@@ -204,13 +211,20 @@
     <div id="tab-categories" class="tab-panel hidden">
       <div class="card">
         <h2 style="margin-top:0">ເພີ່ມໝວດໝູ່ / ສາຂາວິຊາໃໝ່</h2>
-        <div class="toolbar">
-          <input id="newCategoryName" type="text" placeholder="ຕົວຢ່າງ: III. ສາຂາການບັນຊີ" style="flex:1;min-width:260px">
-          <button id="btnAddCategory">+ ເພີ່ມ</button>
+        <div class="grid-2">
+          <div class="field">
+            <label>ຊື່ໝວດໝູ່ (ສະແດງເປັນຫົວຂໍ້ໃນລາຍງານ)</label>
+            <input id="newCategoryName" type="text" placeholder="ຕົວຢ່າງ: V. ຊັ້ນສູງ ກົດໝາຍ">
+          </div>
+          <div class="field">
+            <label>ປ້າຍຊື່ໃນແຖວສະຫຼຸບ (ສັ້ນກວ່າ)</label>
+            <input id="newCategorySummaryLabel" type="text" placeholder="ຕົວຢ່າງ: ສາຍກົດໝາຍ">
+          </div>
         </div>
+        <button id="btnAddCategory">+ ເພີ່ມ</button>
       </div>
       <table>
-        <thead><tr><th style="width:60px">ລຳດັບ</th><th>ຊື່ໝວດໝູ່</th><th style="width:220px">ຈັດການ</th></tr></thead>
+        <thead><tr><th style="width:60px">ລຳດັບ</th><th>ຊື່ໝວດໝູ່</th><th>ປ້າຍຊື່ໃນແຖວສະຫຼຸບ</th><th style="width:120px">ຈັດການ</th></tr></thead>
         <tbody id="categoryTableBody"></tbody>
       </table>
     </div>
@@ -249,46 +263,50 @@
             <input type="hidden" id="f_PhotoUrl">
           </div>
           <div class="field">
-            <label>ລະຫັດນັກສຶກສາ (ເລກທະບຽນ)</label>
-            <input type="text" id="f_StudentCode">
+            <label>ເລກທະບຽນນັກສຶກສາ (ລ/ດ)</label>
+            <input type="number" id="f_Order" placeholder="ອັດຕະໂນມັດຖ້າປະຫວ່າງໄວ້">
           </div>
+          <div class="field">
+            <label>ຮຸ່ນ (ຕົວເລກທ້າຍ)</label>
+            <input type="text" id="f_BatchNo" placeholder="25" value="25">
+          </div>
+        </div>
+        <div class="grid-3">
           <div class="field">
             <label>ໝວດໝູ່ / ສາຂາວິຊາ</label>
             <select id="f_CategoryId"></select>
           </div>
-        </div>
-        <div class="grid-3">
           <div class="field">
-            <label>ຄຳນຳໜ້າ (ທ່ານ/ນາງ)</label>
-            <input type="text" id="f_Rank" placeholder="ທ້າວ / ນາງ">
+            <label>ຊື່ (ຄຳນຳໜ້າ+ຊື່, ພາສາລາວ)</label>
+            <input type="text" id="f_GivenName" placeholder="ທ້າວ ສີສະມຸດ">
           </div>
           <div class="field">
-            <label>ຊື່ ແລະ ນາມສະກຸນ (ພາສາລາວ)</label>
-            <input type="text" id="f_LaoName">
-          </div>
-          <div class="field">
-            <label>ຊື່ ແລະ ນາມສະກຸນ (ພາສາອັງກິດ)</label>
-            <input type="text" id="f_EnglishName" placeholder="Mr./Ms. FirstName LASTNAME">
+            <label>ນາມສະກຸນ (ພາສາລາວ)</label>
+            <input type="text" id="f_Surname" placeholder="ເພັງທະລັງສີ">
           </div>
         </div>
         <div class="grid-3">
+          <div class="field">
+            <label>ຊື່ແລະນາມສະກຸນ (ພາສາອັງກິດ)</label>
+            <input type="text" id="f_EnglishName" placeholder="Mr. Sisamoud PHENGTHALANGSY">
+          </div>
           <div class="field">
             <label>ວັນເດືອນປີເກີດ</label>
-            <input type="date" id="f_DOB">
+            <input type="text" id="f_DOB" placeholder="24.02.2003">
           </div>
           <div class="field">
-            <label>ເພດ</label>
+            <label>ເພດ (ໃຊ້ຄິດໄລ່ຈຳນວນຍິງໃນລາຍງານ)</label>
             <select id="f_Gender">
               <option value="M">ຊາຍ</option>
               <option value="F">ຍິງ</option>
             </select>
           </div>
+        </div>
+        <div class="grid-3">
           <div class="field">
             <label>ບ້ານ</label>
             <input type="text" id="f_Village">
           </div>
-        </div>
-        <div class="grid-3">
           <div class="field">
             <label>ເມືອງ/ນະຄອນ</label>
             <input type="text" id="f_District">
@@ -297,29 +315,33 @@
             <label>ແຂວງ</label>
             <input type="text" id="f_Province">
           </div>
-          <div class="field">
-            <label>ວິຊາສະເພາະ (Major)</label>
-            <input type="text" id="f_Major" placeholder="Bussiness Administration">
-          </div>
         </div>
-        <div class="grid-2">
+        <div class="field">
+          <label>ລະຫັດວິຊາທີ່ຮຽນ (ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</label>
+          <input type="text" id="f_Major" placeholder="Bussiness Administration" style="width:100%">
+        </div>
+        <div class="grid-3">
           <div class="field">
-            <label>ເລກທີໜັງສືຮັບຮອງ (ພາສາລາວ)</label>
-            <input type="text" id="f_CertNoLao" placeholder="001/ຄຄທ/ຄມ.25">
+            <label>ທະບຽນທາງວິທະຍາໄລ (ພາສາລາວ)</label>
+            <input type="text" id="f_CertNoLao" placeholder="001/ວຄທ/ຄມ.25">
           </div>
           <div class="field">
-            <label>ເລກທີໜັງສືຮັບຮອງ (ພາສາອັງກິດ)</label>
+            <label>ທະບຽນທາງວິທະຍາໄລ (ພາສາອັງກິດ)</label>
             <input type="text" id="f_CertNoEnglish" placeholder="001/KBAC/KM.25">
           </div>
+          <div class="field">
+            <label>ທະບຽນກົມການສຶກສາຊັ້ນສູງ</label>
+            <input type="text" id="f_DeptRegNo">
+          </div>
         </div>
         <div class="grid-2">
           <div class="field">
-            <label>ໃບປະກາດສະນີຍະບັດ ມ.6</label>
+            <label>ໃບປະກາດມ.ປາຍ — ມ.6</label>
             <input type="text" id="f_DiplomaM6">
           </div>
           <div class="field">
-            <label>ໃບປະກາດສະນີຍະບັດ ມ.7</label>
-            <input type="text" id="f_DiplomaM7">
+            <label>ໃບປະກາດມ.ປາຍ — ມ.7</label>
+            <input type="text" id="f_DiplomaM7" placeholder="ມ7">
           </div>
         </div>
       </form>
@@ -341,11 +363,13 @@
     ['OrgLine3', 'ບັນທັດທີ 3 (ກະຊວງ)'],
     ['OrgLine4', 'ບັນທັດທີ 4 (ກົມ)'],
     ['OrgLine5', 'ບັນທັດທີ 5 (ພະແນກ)'],
-    ['OrgLine6', 'ບັນທັດທີ 6 (ຊື່ໂຮງຮຽນ/ວິທະຍາໄລ)'],
-    ['OrgLine7', 'ບັນທັດທີ 7 (ໂທລະສັບ)'],
+    ['OrgLine6', 'ບັນທັດທີ 6 (ແຂວງ)'],
+    ['OrgLine7', 'ບັນທັດທີ 7 (ຊື່ວິທະຍາໄລ)'],
+    ['OrgLine8', 'ບັນທັດທີ 8 (ໂທລະສັບ)'],
     ['ReportTitle', 'ຫົວຂໍ້ລາຍງານ'],
     ['ReportSubtitle', 'ຫົວຂໍ້ຍ່ອຍ'],
-    ['ApprovalLeft', 'ຂໍ້ຄວາມວັນທີ (ລຸ່ມຊ້າຍ)'],
+    ['GrandTotalLabel', 'ປ້າຍຊື່ແຖວລວມທັງໝົດ'],
+    ['ApprovalDateLine', 'ຂໍ້ຄວາມວັນທີ (ມຸມຂວາເທິງລາຍເຊັນ)'],
     ['ApprovalLeftTitle', 'ຕຳແໜ່ງເຊັນຊ້າຍ'],
     ['ApprovalRightTitle', 'ຕຳແໜ່ງເຊັນຂວາ']
   ];
@@ -416,7 +440,7 @@
       .filter(function (s) {
         if (cat && s.CategoryId !== cat) return false;
         if (!q) return true;
-        var hay = [s.StudentCode, s.LaoName, s.EnglishName, s.Village, s.District, s.Province]
+        var hay = [s.GivenName, s.Surname, s.EnglishName, s.Village, s.District, s.Province]
           .join(' ').toLowerCase();
         return hay.indexOf(q) !== -1;
       });
@@ -428,14 +452,14 @@
     tbody.innerHTML = '';
     document.getElementById('listEmptyState').classList.toggle('hidden', list.length > 0);
 
-    list.forEach(function (s, idx) {
+    list.forEach(function (s) {
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + escapeHtml(s.Order) + '</td>' +
         '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
-        '<td>' + escapeHtml(s.StudentCode) + '</td>' +
-        '<td class="name-cell">' + escapeHtml(s.Rank || '') + ' ' + escapeHtml(s.LaoName || '') +
-          '<br><span style="color:#888;font-size:11px">' + escapeHtml(s.EnglishName || '') + '</span></td>' +
+        '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
+        '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
+        '<td class="name-cell">' + escapeHtml(s.EnglishName || '') + '</td>' +
         '<td>' + escapeHtml(s.DOB || '') + '</td>' +
         '<td>' + escapeHtml(s.Village || '') + '</td>' +
         '<td>' + escapeHtml(categoryName(s.CategoryId)) + '</td>' +
@@ -486,10 +510,11 @@
     var s = id ? STATE.students.find(function (x) { return x.ID === id; }) : null;
     document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
     document.getElementById('f_ID').value = s ? s.ID : '';
-    document.getElementById('f_StudentCode').value = s ? s.StudentCode || '' : '';
+    document.getElementById('f_Order').value = s ? s.Order || '' : '';
+    document.getElementById('f_BatchNo').value = s ? s.BatchNo || '25' : '25';
     document.getElementById('f_CategoryId').value = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
-    document.getElementById('f_Rank').value = s ? s.Rank || '' : '';
-    document.getElementById('f_LaoName').value = s ? s.LaoName || '' : '';
+    document.getElementById('f_GivenName').value = s ? s.GivenName || '' : '';
+    document.getElementById('f_Surname').value = s ? s.Surname || '' : '';
     document.getElementById('f_EnglishName').value = s ? s.EnglishName || '' : '';
     document.getElementById('f_DOB').value = s ? s.DOB || '' : '';
     document.getElementById('f_Gender').value = s ? s.Gender || 'M' : 'M';
@@ -499,6 +524,7 @@
     document.getElementById('f_Major').value = s ? s.Major || '' : '';
     document.getElementById('f_CertNoLao').value = s ? s.CertNoLao || '' : '';
     document.getElementById('f_CertNoEnglish').value = s ? s.CertNoEnglish || '' : '';
+    document.getElementById('f_DeptRegNo').value = s ? s.DeptRegNo || '' : '';
     document.getElementById('f_DiplomaM6').value = s ? s.DiplomaM6 || '' : '';
     document.getElementById('f_DiplomaM7').value = s ? s.DiplomaM7 || '' : '';
     document.getElementById('f_PhotoUrl').value = s ? s.PhotoUrl || '' : '';
@@ -520,10 +546,11 @@
 
     var student = {
       ID: document.getElementById('f_ID').value || undefined,
-      StudentCode: document.getElementById('f_StudentCode').value,
+      Order: document.getElementById('f_Order').value || undefined,
+      BatchNo: document.getElementById('f_BatchNo').value,
       CategoryId: document.getElementById('f_CategoryId').value,
-      Rank: document.getElementById('f_Rank').value,
-      LaoName: document.getElementById('f_LaoName').value,
+      GivenName: document.getElementById('f_GivenName').value,
+      Surname: document.getElementById('f_Surname').value,
       EnglishName: document.getElementById('f_EnglishName').value,
       DOB: document.getElementById('f_DOB').value,
       Gender: document.getElementById('f_Gender').value,
@@ -533,6 +560,7 @@
       Major: document.getElementById('f_Major').value,
       CertNoLao: document.getElementById('f_CertNoLao').value,
       CertNoEnglish: document.getElementById('f_CertNoEnglish').value,
+      DeptRegNo: document.getElementById('f_DeptRegNo').value,
       DiplomaM6: document.getElementById('f_DiplomaM6').value,
       DiplomaM7: document.getElementById('f_DiplomaM7').value,
       PhotoUrl: document.getElementById('f_PhotoUrl').value
@@ -578,16 +606,18 @@
 
   function bindCategoryUI() {
     document.getElementById('btnAddCategory').addEventListener('click', function () {
-      var input = document.getElementById('newCategoryName');
-      var name = input.value.trim();
+      var nameInput = document.getElementById('newCategoryName');
+      var labelInput = document.getElementById('newCategorySummaryLabel');
+      var name = nameInput.value.trim();
       if (!name) return;
       google.script.run.withSuccessHandler(function (data) {
         STATE.categories = data.categories;
         renderCategoryOptions();
         renderCategoryTable();
-        input.value = '';
+        nameInput.value = '';
+        labelInput.value = '';
         showToast('ເພີ່ມໝວດໝູ່ສຳເລັດ');
-      }).withFailureHandler(showError).upsertCategory({ Name: name });
+      }).withFailureHandler(showError).upsertCategory({ Name: name, SummaryLabel: labelInput.value.trim() || name });
     });
   }
 
@@ -601,20 +631,24 @@
         var tr = document.createElement('tr');
         tr.innerHTML =
           '<td>' + c.SortOrder + '</td>' +
-          '<td class="name-cell"><input type="text" value="' + escapeAttr(c.Name) + '" onchange="renameCategory(\'' + c.ID + '\', this.value)"></td>' +
+          '<td class="name-cell"><input type="text" value="' + escapeAttr(c.Name) + '" onchange="renameCategory(\'' + c.ID + '\', this.value, undefined)"></td>' +
+          '<td class="name-cell"><input type="text" value="' + escapeAttr(c.SummaryLabel || '') + '" onchange="renameCategory(\'' + c.ID + '\', undefined, this.value)"></td>' +
           '<td><button class="danger" onclick="removeCategory(\'' + c.ID + '\')">ລຶບ</button></td>';
         tbody.appendChild(tr);
       });
   }
 
-  function renameCategory(id, name) {
+  function renameCategory(id, name, summaryLabel) {
     var c = STATE.categories.find(function (x) { return x.ID === id; });
+    var payload = { ID: id, SortOrder: c ? c.SortOrder : 0 };
+    if (name !== undefined) payload.Name = name;
+    if (summaryLabel !== undefined) payload.SummaryLabel = summaryLabel;
     google.script.run.withSuccessHandler(function (data) {
       STATE.categories = data.categories;
       renderCategoryOptions();
       renderStudentTable();
-      showToast('ບັນທຶກຊື່ໝວດໝູ່ສຳເລັດ');
-    }).withFailureHandler(showError).upsertCategory({ ID: id, Name: name, SortOrder: c ? c.SortOrder : 0 });
+      showToast('ບັນທຶກຂໍ້ມູນໝວດໝູ່ສຳເລັດ');
+    }).withFailureHandler(showError).upsertCategory(payload);
   }
 
   function removeCategory(id) {
@@ -669,58 +703,96 @@
   function buildReportHtml(report) {
     var st = report.settings;
     var html = '';
+
     html += '<div class="report-header">';
-    ['OrgLine1', 'OrgLine2'].forEach(function (k) { html += '<div style="font-weight:700">' + escapeHtml(st[k] || '') + '</div>'; });
-    ['OrgLine3', 'OrgLine4', 'OrgLine5', 'OrgLine6', 'OrgLine7'].forEach(function (k) {
+    html += '<div style="font-weight:700">' + escapeHtml(st.OrgLine1 || '') + '</div>';
+    html += '<div>' + escapeHtml(st.OrgLine2 || '') + '</div>';
+    html += '</div>';
+    html += '<div class="org-left">';
+    ['OrgLine3', 'OrgLine4', 'OrgLine5', 'OrgLine6', 'OrgLine7', 'OrgLine8'].forEach(function (k) {
       if (st[k]) html += '<div>' + escapeHtml(st[k]) + '</div>';
     });
     html += '</div>';
+
     html += '<div class="report-title">' + escapeHtml(st.ReportTitle || '') + '</div>';
     if (st.ReportSubtitle) html += '<div class="report-subtitle">' + escapeHtml(st.ReportSubtitle) + '</div>';
 
     report.groups.forEach(function (g) {
       if (g.students.length === 0 && report.groups.length > 1) return;
       html += '<div class="category-heading">' + escapeHtml(g.category.Name) + '</div>';
-      html += '<table><thead><tr>' +
-        '<th>ລ/ດ</th><th>ເລກທະບຽນ</th><th>ຮູບພາບ</th><th>ຄຳນຳໜ້າ</th>' +
-        '<th>ຊື່ ແລະ ນາມສະກຸນ<br>(ພາສາອັງກິດ)</th><th>ວັນເດືອນປີເກີດ</th>' +
-        '<th>ບ້ານ</th><th>ເມືອງ/ນະຄອນ</th><th>ແຂວງ</th><th>ວິຊາສະເພາະ</th>' +
-        '<th>ເລກທີໜັງສືຮັບຮອງ<br>(ລາວ)</th><th>ເລກທີໜັງສືຮັບຮອງ<br>(ອັງກິດ)</th>' +
+      html += '<table><thead>';
+      html += '<tr>' +
+        '<th rowspan="2">ລ/ດ</th>' +
+        '<th colspan="2">ເລກທະບຽນນັກສຶກສາ</th>' +
+        '<th rowspan="2">ຮູບຖ່າຍ</th>' +
+        '<th rowspan="2">ຊື່</th>' +
+        '<th rowspan="2">ນາມສະກຸນ</th>' +
+        '<th rowspan="2">ຊື່ແລະນາມສະກຸນ<br>(ພາສາອັງກິດ)</th>' +
+        '<th rowspan="2">ວັນເດືອນປີເກີດ</th>' +
+        '<th rowspan="2">ບ້ານ</th>' +
+        '<th rowspan="2">ເມືອງ/ນະຄອນ</th>' +
+        '<th rowspan="2">ແຂວງ</th>' +
+        '<th rowspan="2">ລະຫັດວິຊາທີ່ຮຽນ<br>(ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</th>' +
+        '<th colspan="2">ທະບຽນທາງວິທະຍາໄລ</th>' +
+        '<th rowspan="2">ທະບຽນກົມການ<br>ສຶກສາຊັ້ນສູງ</th>' +
+        '<th colspan="2">ໃບປະກາດມ.ປາຍ</th>' +
+        '</tr>';
+      html += '<tr>' +
+        '<th></th><th></th>' +
+        '<th>ພາສາລາວ</th><th>ພາສາອັງກິດ</th>' +
         '<th>ມ.6</th><th>ມ.7</th>' +
-        '</tr></thead><tbody>';
-      g.students.forEach(function (s, idx) {
-        html += '<tr>' +
-          '<td>' + (idx + 1) + '</td>' +
-          '<td>' + escapeHtml(s.StudentCode || '') + '</td>' +
-          '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
-          '<td>' + escapeHtml(s.Rank || '') + '</td>' +
-          '<td class="name-cell">' + escapeHtml(s.EnglishName || '') + '<br><span style="color:#888">' + escapeHtml(s.LaoName || '') + '</span></td>' +
-          '<td>' + escapeHtml(s.DOB || '') + '</td>' +
-          '<td>' + escapeHtml(s.Village || '') + '</td>' +
-          '<td>' + escapeHtml(s.District || '') + '</td>' +
-          '<td>' + escapeHtml(s.Province || '') + '</td>' +
-          '<td>' + escapeHtml(s.Major || '') + '</td>' +
-          '<td>' + escapeHtml(s.CertNoLao || '') + '</td>' +
-          '<td>' + escapeHtml(s.CertNoEnglish || '') + '</td>' +
-          '<td>' + escapeHtml(s.DiplomaM6 || '') + '</td>' +
-          '<td>' + escapeHtml(s.DiplomaM7 || '') + '</td>' +
-          '</tr>';
-      });
+        '</tr>';
+      html += '</thead><tbody>';
+      g.students
+        .slice()
+        .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
+        .forEach(function (s) {
+          html += '<tr>' +
+            '<td>' + escapeHtml(s.Order) + '</td>' +
+            '<td>' + escapeHtml(s.Order) + '</td>' +
+            '<td>' + escapeHtml(s.BatchNo) + '</td>' +
+            '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
+            '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
+            '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
+            '<td class="name-cell">' + escapeHtml(s.EnglishName || '') + '</td>' +
+            '<td>' + escapeHtml(s.DOB || '') + '</td>' +
+            '<td>' + escapeHtml(s.Village || '') + '</td>' +
+            '<td>' + escapeHtml(s.District || '') + '</td>' +
+            '<td>' + escapeHtml(s.Province || '') + '</td>' +
+            '<td>' + escapeHtml(s.Major || '') + '</td>' +
+            '<td>' + escapeHtml(s.CertNoLao || '') + '</td>' +
+            '<td>' + escapeHtml(s.CertNoEnglish || '') + '</td>' +
+            '<td>' + escapeHtml(s.DeptRegNo || '') + '</td>' +
+            '<td>' + escapeHtml(s.DiplomaM6 || '') + '</td>' +
+            '<td>' + escapeHtml(s.DiplomaM7 || '') + '</td>' +
+            '</tr>';
+        });
       html += '</tbody></table>';
     });
 
-    html += '<table class="summary-table" style="margin-top:20px;max-width:520px">';
-    html += '<thead><tr><th>ໝວດໝູ່ / ສາຂາວິຊາ</th><th class="num">ຊາຍ</th><th class="num">ຍິງ</th><th class="num">ລວມ</th></tr></thead><tbody>';
+    html += '<div class="summary-block">';
     report.summary.forEach(function (s) {
-      html += '<tr><td>' + escapeHtml(s.name) + '</td><td class="num">' + s.male + '</td><td class="num">' + s.female + '</td><td class="num">' + s.total + '</td></tr>';
+      html += '<div class="summary-row">' +
+        '<div>' + escapeHtml(s.label) + '</div>' +
+        '<div>' + s.total + '</div>' +
+        '<div>ຄົນ, ຍິງ :</div>' +
+        '<div>' + s.female + '</div>' +
+        '<div>ຄົນ</div>' +
+        '</div>';
     });
-    html += '<tr style="font-weight:700"><td>ລວມທັງໝົດ</td><td class="num">' + report.grandTotal.male +
-      '</td><td class="num">' + report.grandTotal.female + '</td><td class="num">' + report.grandTotal.total + '</td></tr>';
-    html += '</tbody></table>';
+    html += '<div class="summary-row">' +
+      '<div>' + escapeHtml(st.GrandTotalLabel || '') + '</div>' +
+      '<div>' + report.grandTotal.total + '</div>' +
+      '<div>ຄົນ, ຍິງ :</div>' +
+      '<div>' + report.grandTotal.female + '</div>' +
+      '<div>ຄົນ</div>' +
+      '</div>';
+    html += '</div>';
 
+    html += '<div class="sign-date">' + escapeHtml(st.ApprovalDateLine || '') + '</div>';
     html += '<div class="sign-row">' +
-      '<div style="text-align:center">' + escapeHtml(st.ApprovalLeft || '') + '<br><br><br>............................<br>' + escapeHtml(st.ApprovalLeftTitle || '') + '</div>' +
-      '<div style="text-align:center">&nbsp;<br><br><br>............................<br>' + escapeHtml(st.ApprovalRightTitle || '') + '</div>' +
+      '<div>' + escapeHtml(st.ApprovalLeftTitle || '') + '</div>' +
+      '<div>' + escapeHtml(st.ApprovalRightTitle || '') + '</div>' +
       '</div>';
 
     return html;
