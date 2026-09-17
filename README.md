@@ -50,8 +50,8 @@
 
 ### วิธีที่ 1 — คัดลอกไปวางใน Apps Script Editor (ง่ายที่สุด, แนะนำ)
 
-1. เปิด **ชีตจริงของคุณ** ที่มีข้อมูลนักศึกษาอยู่แล้ว (เช่น ชีตที่
-   https://docs.google.com/spreadsheets/d/1VP2nUZBnTDvjfubdVPGVeYiYN9b_n7sLfp27mL3-zw0)
+1. เปิด **ชีตจริงของคุณ** ที่มีข้อมูลนักศึกษาอยู่แล้ว:
+   https://docs.google.com/spreadsheets/d/1hc-O6z_pNna_E6T_KgHakbQ841EatuU9lt4209W06gE/edit?gid=0#gid=0
 2. ในชีตนั้น เปิด **Extensions → Apps Script** (จะได้โปรเจกต์สคริปต์ที่ผูก
    กับชีตนี้โดยตรง)
 3. ในหน้าตัวแก้ไข (editor):
