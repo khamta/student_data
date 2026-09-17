@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <base target="_top">
   <meta charset="utf-8">
@@ -7,275 +8,635 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&display=swap" rel="stylesheet">
   <style>
-  :root {
-    --primary: #7a1f2b;
-    --primary-dark: #5c1620;
-    --bg: #f4f2ef;
-    --border: #d8d2c9;
-    --text: #2a2320;
-    --font-lao: 'Phetsarath', 'Phetsarath OT', 'Saysettha OT', 'Noto Sans Lao', sans-serif;
-    --font-eng: 'Times New Roman', Times, serif;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: var(--font-lao), var(--font-eng);
-    background: var(--bg);
-    color: var(--text);
-    margin: 0;
-  }
-  .eng {
-    font-family: var(--font-eng), var(--font-lao);
-  }
-  .topbar {
-    background: var(--primary);
-    color: #fff;
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .topbar h1 { font-size: 18px; margin: 0; }
-  .tabs {
-    display: flex;
-    gap: 4px;
-    background: #fff;
-    padding: 8px 16px 0;
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-  }
-  .tab-btn {
-    border: none;
-    background: transparent;
-    padding: 10px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    border-radius: 8px 8px 0 0;
-    color: #555;
-  }
-  .tab-btn.active {
-    background: var(--bg);
-    color: var(--primary);
-    font-weight: 700;
-    border: 1px solid var(--border);
-    border-bottom: 1px solid var(--bg);
-    margin-bottom: -1px;
-  }
-  .page { padding: 18px 20px; max-width: 1400px; margin: 0 auto; }
-  .hidden { display: none !important; }
+    :root {
+      --primary: #7a1f2b;
+      --primary-dark: #5c1620;
+      --bg: #f4f2ef;
+      --border: #d8d2c9;
+      --text: #2a2320;
+      --font-lao: 'Phetsarath', 'Phetsarath OT', 'Saysettha OT', 'Noto Sans Lao', sans-serif;
+      --font-eng: 'Times New Roman', Times, serif;
+    }
 
-  .toolbar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  input, select, textarea {
-    font-family: inherit;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 14px;
-  }
-  button {
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-    border-radius: 6px;
-    padding: 9px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    background: var(--primary);
-    color: #fff;
-  }
-  button:hover { background: var(--primary-dark); }
-  button.secondary { background: #5a5a5a; }
-  button.secondary:hover { background: #444; }
-  button.danger { background: #dc2626; }
-  button.danger:hover { background: #b91c1c; }
-  button.ghost { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
-  button.ghost:hover { background: rgba(122, 31, 43, .08); }
+    * {
+      box-sizing: border-box;
+    }
 
-  table { border-collapse: collapse; width: 100%; background: #fff; }
-  th, td {
-    border: 1px solid var(--border);
-    padding: 6px 8px;
-    font-size: 13px;
-    text-align: center;
-    vertical-align: middle;
-  }
-  th { background: #efe7e2; }
-  td.name-cell { text-align: left; }
-  .row-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-  .row-actions button { padding: 6px 10px; font-size: 12px; }
-  .thumb {
-    width: 46px; height: 58px;
-    object-fit: cover;
-    border: 1px solid var(--border);
-    background: #eee;
-    cursor: zoom-in;
-  }
-  .thumb-wide { width: 140px; height: 90px; border-radius: 6px; }
+    body {
+      font-family: var(--font-lao), var(--font-eng);
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+    }
 
-  .lightbox-backdrop {
-    position: fixed; inset: 0; background: rgba(15, 10, 8, .88);
-    z-index: 200; display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-  }
-  .lightbox-img {
-    max-width: 90vw; max-height: 85vh;
-    cursor: grab; user-select: none; -webkit-user-drag: none;
-    box-shadow: 0 10px 40px rgba(0,0,0,.5);
-    transform-origin: center center;
-  }
-  .lightbox-img.dragging { cursor: grabbing; }
-  .lightbox-close {
-    position: absolute; top: 18px; right: 22px; z-index: 201;
-    background: rgba(255,255,255,.15); color: #fff; border: none;
-    width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer;
-  }
-  .lightbox-close:hover { background: rgba(255,255,255,.3); }
-  .lightbox-hint {
-    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
-    color: rgba(255,255,255,.65); font-size: 12px; z-index: 201; pointer-events: none;
-    white-space: nowrap;
-  }
-  .card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-  label { display: block; font-size: 12px; color: #6b6259; margin-bottom: 5px; font-weight: 600; }
-  .field { margin-bottom: 4px; }
-  .field input, .field select {
-    width: 100%;
-    border-radius: 8px;
-    border-color: #dcd5cb;
-    transition: border-color .15s, box-shadow .15s;
-  }
-  .field input:focus, .field select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(122, 31, 43, .12);
-  }
+    .eng {
+      font-family: var(--font-eng), var(--font-lao);
+    }
 
-  .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(30, 20, 18, .55);
-    display: flex; align-items: flex-start; justify-content: center;
-    padding: 30px 12px; overflow: auto; z-index: 50;
-  }
-  .modal {
-    background: #fff; border-radius: 14px;
-    max-width: 800px; width: 100%;
-    max-height: calc(100vh - 60px);
-    display: flex; flex-direction: column;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
-    overflow: hidden;
-  }
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 24px; border-bottom: 1px solid var(--border);
-  }
-  .modal-header h2 { margin: 0; font-size: 17px; }
-  .modal-close {
-    background: transparent; color: #888; border: none;
-    font-size: 20px; line-height: 1; padding: 4px 8px; border-radius: 6px;
-  }
-  .modal-close:hover { background: #f1ece7; color: var(--primary); }
-  .modal-body { padding: 22px 24px; overflow-y: auto; }
-  .form-section { margin-bottom: 22px; }
-  .form-section:last-child { margin-bottom: 0; }
-  .form-section-title {
-    font-size: 12px; font-weight: 700; color: var(--primary);
-    text-transform: uppercase; letter-spacing: .04em;
-    margin-bottom: 12px; padding-bottom: 6px;
-    border-bottom: 2px solid #f1ece7;
-  }
-  .photo-row { display: flex; gap: 16px; align-items: flex-start; }
-  .photo-row .field:first-child { flex: 0 0 auto; }
-  .photo-row .grid-3, .photo-row .grid-2 { flex: 1; }
-  #f_PhotoPreview.thumb { width: 64px; height: 80px; border-radius: 6px; }
-  .modal-actions {
-    display: flex; justify-content: flex-end; gap: 10px;
-    padding: 16px 24px; border-top: 1px solid var(--border);
-    background: #faf8f6;
-  }
+    .topbar {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
 
-  .modal-sm { max-width: 420px; }
-  .modal-sm .modal-body { padding: 20px 24px; }
-  .confirm-message { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text); }
+    .topbar h1 {
+      font-size: 18px;
+      margin: 0;
+    }
 
-  .detail-photos { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-  .detail-photo-box { text-align: center; }
-  .detail-photo-box img, .detail-photo-box .no-photo {
-    border-radius: 8px; border: 1px solid var(--border); object-fit: cover; background: #f4f2ef;
-  }
-  .detail-photo-box .no-photo { display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; }
-  .detail-photo-box span { display: block; font-size: 12px; color: #6b6259; margin-top: 6px; }
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
-  .detail-row { padding: 9px 0; border-bottom: 1px solid #f1ece7; display: flex; justify-content: space-between; gap: 12px; }
-  .detail-row .k { color: #6b6259; font-size: 13px; }
-  .detail-row .v { font-weight: 600; font-size: 13px; text-align: right; }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: #fff;
+      padding: 8px 16px 0;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
 
-  .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 999px;
-    background: #eee; font-size: 11px;
-  }
-  .toast {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: #222; color: #fff; padding: 10px 18px; border-radius: 8px;
-    font-size: 13px; z-index: 100;
-  }
-  .toast.error { background: #b23b3b; }
-  .empty-state { text-align: center; color: #888; padding: 30px; }
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 8px 8px 0 0;
+      color: #555;
+    }
 
-  /* ---- Printable report ---- */
-  #reportRoot { background: #fff; padding: 24px; font-size: 13px; }
-  #reportRoot table { font-size: 11px; }
-  .report-header { text-align: center; margin-bottom: 6px; line-height: 1.5; }
-  .report-header .org-left { text-align: left; }
-  .report-header-grid { display: grid; grid-template-columns: 1fr 1fr; }
-  .report-title { font-weight: 700; text-decoration: underline; margin: 16px 0 4px; text-align: center; }
-  .report-subtitle { text-decoration: underline; margin-bottom: 12px; text-align: center; }
-  .category-heading { font-weight: 700; text-decoration: underline; text-align: left !important; background: #fff; }
-  .summary-block { margin-top: 18px; }
-  .summary-row { display: grid; grid-template-columns: 260px 60px 90px 60px 40px; gap: 4px; font-weight: 700; }
-  .summary-row div:nth-child(2), .summary-row div:nth-child(4) { text-align: center; }
-  .sign-date { text-align: right; margin: 30px 0 0; }
-  .sign-row { display: flex; justify-content: space-between; margin-top: 10px; }
-  .sign-row div { text-align: center; max-width: 320px; }
+    .tab-btn.active {
+      background: var(--bg);
+      color: var(--primary);
+      font-weight: 700;
+      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--bg);
+      margin-bottom: -1px;
+    }
 
-  @page {
-    size: A4 landscape;
-    margin: 10mm;
-  }
+    .page {
+      padding: 18px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
 
-  @media print {
-    .no-print { display: none !important; }
-    .page { padding: 0; max-width: none; }
-    body { background: #fff; }
-    #reportRoot { padding: 0; }
-    table { font-size: 10px; }
-  }
+    .hidden {
+      display: none !important;
+    }
 
-  @media (max-width: 800px) {
-    .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    .report-header-grid { grid-template-columns: 1fr; }
-  }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    button.secondary {
+      background: #5a5a5a;
+    }
+
+    button.secondary:hover {
+      background: #444;
+    }
+
+    button.danger {
+      background: #dc2626;
+    }
+
+    button.danger:hover {
+      background: #b91c1c;
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    button.ghost:hover {
+      background: rgba(122, 31, 43, .08);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      font-size: 13px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #efe7e2;
+    }
+
+    td.name-cell {
+      text-align: left;
+    }
+
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .row-actions button {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .thumb {
+      width: 46px;
+      height: 58px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #eee;
+      cursor: zoom-in;
+    }
+
+    .thumb-wide {
+      width: 140px;
+      height: 90px;
+      border-radius: 6px;
+    }
+
+    .lightbox-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 10, 8, .88);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .lightbox-img {
+      max-width: 90vw;
+      max-height: 85vh;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: none;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
+      transform-origin: center center;
+    }
+
+    .lightbox-img.dragging {
+      cursor: grabbing;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      z-index: 201;
+      background: rgba(255, 255, 255, .15);
+      color: #fff;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .lightbox-close:hover {
+      background: rgba(255, 255, 255, .3);
+    }
+
+    .lightbox-hint {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, .65);
+      font-size: 12px;
+      z-index: 201;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #6b6259;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .field {
+      margin-bottom: 4px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border-radius: 8px;
+      border-color: #dcd5cb;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(122, 31, 43, .12);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 20, 18, .55);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 30px 12px;
+      overflow: auto;
+      z-index: 50;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      max-width: 800px;
+      width: 100%;
+      max-height: calc(100vh - 60px);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .modal-close {
+      background: transparent;
+      color: #888;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .modal-close:hover {
+      background: #f1ece7;
+      color: var(--primary);
+    }
+
+    .modal-body {
+      padding: 22px 24px;
+      overflow-y: auto;
+    }
+
+    .form-section {
+      margin-bottom: 22px;
+    }
+
+    .form-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #f1ece7;
+    }
+
+    .photo-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .photo-row .field:first-child {
+      flex: 0 0 auto;
+    }
+
+    .photo-row .grid-3,
+    .photo-row .grid-2 {
+      flex: 1;
+    }
+
+    #f_PhotoPreview.thumb {
+      width: 64px;
+      height: 80px;
+      border-radius: 6px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      background: #faf8f6;
+    }
+
+    .modal-sm {
+      max-width: 420px;
+    }
+
+    .modal-sm .modal-body {
+      padding: 20px 24px;
+    }
+
+    .confirm-message {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .detail-photos {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .detail-photo-box {
+      text-align: center;
+    }
+
+    .detail-photo-box img,
+    .detail-photo-box .no-photo {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      object-fit: cover;
+      background: #f4f2ef;
+    }
+
+    .detail-photo-box .no-photo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .detail-photo-box span {
+      display: block;
+      font-size: 12px;
+      color: #6b6259;
+      margin-top: 6px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 24px;
+    }
+
+    .detail-row {
+      padding: 9px 0;
+      border-bottom: 1px solid #f1ece7;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .detail-row .k {
+      color: #6b6259;
+      font-size: 13px;
+    }
+
+    .detail-row .v {
+      font-weight: 600;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eee;
+      font-size: 11px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 100;
+    }
+
+    .toast.error {
+      background: #b23b3b;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #888;
+      padding: 30px;
+    }
+
+    /* ---- Printable report ---- */
+    #reportRoot {
+      background: #fff;
+      padding: 24px;
+      font-size: 13px;
+    }
+
+    #reportRoot table {
+      font-size: 11px;
+    }
+
+    .report-header {
+      text-align: center;
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    .report-header .org-left {
+      text-align: left;
+    }
+
+    .report-header-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .report-title {
+      font-weight: 700;
+      text-decoration: underline;
+      margin: 16px 0 4px;
+      text-align: center;
+    }
+
+    .report-subtitle {
+      text-decoration: underline;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .category-heading {
+      font-weight: 700;
+      text-decoration: underline;
+      text-align: left !important;
+      background: #fff;
+    }
+
+    .summary-block {
+      margin-top: 18px;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: 260px 60px 90px 60px 40px;
+      gap: 4px;
+      font-weight: 700;
+    }
+
+    .summary-row div:nth-child(2),
+    .summary-row div:nth-child(4) {
+      text-align: center;
+    }
+
+    .sign-date {
+      text-align: right;
+      margin: 30px 0 0;
+    }
+
+    .sign-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .sign-row div {
+      text-align: center;
+      max-width: 320px;
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 10mm;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+
+      .page {
+        padding: 0;
+        max-width: none;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      #reportRoot {
+        padding: 0;
+      }
+
+      table {
+        font-size: 10px;
+      }
+    }
+
+    @media (max-width: 800px) {
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .report-header-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
+
 <body>
 
   <div class="topbar no-print">
-    <h1>ລະບົບຈັດການທຳນຽບນັກສຶກສາ</h1>
+    <h1>ລະບົບຈັດການຂໍ້ມູນນັກສຶກສາ</h1>
     <div>
-      <span id="studentCountBadge" class="badge">…</span>
+      <span id="studentCountBadge" class="badge" style="color: #222;">…</span>
     </div>
   </div>
 
@@ -291,21 +652,31 @@
     <div id="tab-list" class="tab-panel">
       <div class="toolbar">
         <input id="searchInput" type="text" placeholder="ຄົ້ນຫາຊື່, ນາມສະກຸນ, ບ້ານ...">
-        <select id="filterCategory"><option value="">ທຸກໝວດໝູ່</option></select>
+        <select id="filterCategory">
+          <option value="">ທຸກໝວດໝູ່</option>
+        </select>
         <button id="btnAddStudent">+ ເພີ່ມນັກສຶກສາ</button>
       </div>
       <div style="overflow-x:auto">
         <table id="studentTable">
           <thead>
             <tr>
-              <th>ລ/ດ</th><th>ຮູບ</th><th>ຊື່</th><th>ນາມສະກຸນ</th><th>ຊື່ (ພາສາອັງກິດ)</th>
-              <th>ວັນເດືອນປີເກີດ</th><th>ບ້ານ</th><th>ສາຂາວິຊາ</th><th>ຈັດການ</th>
+              <th>ລ/ດ</th>
+              <th>ຮູບ</th>
+              <th>ຊື່</th>
+              <th>ນາມສະກຸນ</th>
+              <th>ຊື່ (ພາສາອັງກິດ)</th>
+              <th>ວັນເດືອນປີເກີດ</th>
+              <th>ບ້ານ</th>
+              <th>ສາຂາວິຊາ</th>
+              <th>ຈັດການ</th>
             </tr>
           </thead>
           <tbody id="studentTableBody"></tbody>
         </table>
       </div>
-      <div id="listEmptyState" class="empty-state hidden">ຍັງບໍ່ມີຂໍ້ມູນນັກສຶກສາ — ກົດ "ເພີ່ມນັກສຶກສາ" ເພື່ອເລີ່ມຕົ້ນ</div>
+      <div id="listEmptyState" class="empty-state hidden">ຍັງບໍ່ມີຂໍ້ມູນນັກສຶກສາ — ກົດ "ເພີ່ມນັກສຶກສາ" ເພື່ອເລີ່ມຕົ້ນ
+      </div>
     </div>
 
     <!-- ================= SETTINGS TAB ================= -->
@@ -382,7 +753,8 @@
               </div>
               <div class="field">
                 <label>ຊື່ແລະນາມສະກຸນ (ພາສາອັງກິດ)</label>
-                <input type="text" id="f_EnglishName" class="eng" autocomplete="off" placeholder="Mr. Sisamoud PHENGTHALANGSY">
+                <input type="text" id="f_EnglishName" class="eng" autocomplete="off"
+                  placeholder="Mr. Sisamoud PHENGTHALANGSY">
               </div>
               <div class="field">
                 <label>ວັນເດືອນປີເກີດ</label>
@@ -491,686 +863,687 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-  var STATE = { students: [], categories: [], settings: {} };
+    var STATE = { students: [], categories: [], settings: {} };
 
-  var SETTINGS_FIELDS = [
-    ['OrgLine1', 'ບັນທັດທີ 1 (ຊື່ປະເທດ)'],
-    ['OrgLine2', 'ບັນທັດທີ 2 (ຄຳຂວັນ)'],
-    ['OrgLine3', 'ບັນທັດທີ 3 (ກະຊວງ)'],
-    ['OrgLine4', 'ບັນທັດທີ 4 (ກົມ)'],
-    ['OrgLine5', 'ບັນທັດທີ 5 (ພະແນກ)'],
-    ['OrgLine6', 'ບັນທັດທີ 6 (ແຂວງ)'],
-    ['OrgLine7', 'ບັນທັດທີ 7 (ຊື່ວິທະຍາໄລ)'],
-    ['OrgLine8', 'ບັນທັດທີ 8 (ໂທລະສັບ)'],
-    ['ReportTitle', 'ຫົວຂໍ້ລາຍງານ'],
-    ['ReportSubtitle', 'ຫົວຂໍ້ຍ່ອຍ'],
-    ['GrandTotalLabel', 'ປ້າຍຊື່ແຖວລວມທັງໝົດ'],
-    ['ApprovalDateLine', 'ຂໍ້ຄວາມວັນທີ (ມຸມຂວາເທິງລາຍເຊັນ)'],
-    ['ApprovalLeftTitle', 'ຕຳແໜ່ງເຊັນຊ້າຍ'],
-    ['ApprovalRightTitle', 'ຕຳແໜ່ງເຊັນຂວາ']
-  ];
+    var SETTINGS_FIELDS = [
+      ['OrgLine1', 'ບັນທັດທີ 1 (ຊື່ປະເທດ)'],
+      ['OrgLine2', 'ບັນທັດທີ 2 (ຄຳຂວັນ)'],
+      ['OrgLine3', 'ບັນທັດທີ 3 (ກະຊວງ)'],
+      ['OrgLine4', 'ບັນທັດທີ 4 (ກົມ)'],
+      ['OrgLine5', 'ບັນທັດທີ 5 (ພະແນກ)'],
+      ['OrgLine6', 'ບັນທັດທີ 6 (ແຂວງ)'],
+      ['OrgLine7', 'ບັນທັດທີ 7 (ຊື່ວິທະຍາໄລ)'],
+      ['OrgLine8', 'ບັນທັດທີ 8 (ໂທລະສັບ)'],
+      ['ReportTitle', 'ຫົວຂໍ້ລາຍງານ'],
+      ['ReportSubtitle', 'ຫົວຂໍ້ຍ່ອຍ'],
+      ['GrandTotalLabel', 'ປ້າຍຊື່ແຖວລວມທັງໝົດ'],
+      ['ApprovalDateLine', 'ຂໍ້ຄວາມວັນທີ (ມຸມຂວາເທິງລາຍເຊັນ)'],
+      ['ApprovalLeftTitle', 'ຕຳແໜ່ງເຊັນຊ້າຍ'],
+      ['ApprovalRightTitle', 'ຕຳແໜ່ງເຊັນຂວາ']
+    ];
 
-  document.addEventListener('DOMContentLoaded', function () {
-    bindTabs();
-    bindStudentModal();
-    bindConfirmModal();
-    bindDetailModal();
-    bindLightbox();
-    bindSettingsUI();
-    bindReportUI();
-    loadAll();
-  });
-
-  /* ---------------- Image lightbox (click any photo to preview / zoom) ---------------- */
-
-  var lightboxScale = 1;
-  var lightboxTranslate = { x: 0, y: 0 };
-  var lightboxDragging = false;
-  var lightboxDragStart = null;
-
-  function openLightbox(src) {
-    lightboxScale = 1;
-    lightboxTranslate = { x: 0, y: 0 };
-    var img = document.getElementById('lightboxImg');
-    img.src = src;
-    applyLightboxTransform();
-    document.getElementById('lightboxBackdrop').classList.remove('hidden');
-  }
-
-  function closeLightbox() {
-    document.getElementById('lightboxBackdrop').classList.add('hidden');
-    document.getElementById('lightboxImg').src = '';
-  }
-
-  function applyLightboxTransform() {
-    var img = document.getElementById('lightboxImg');
-    img.style.transform = 'translate(' + lightboxTranslate.x + 'px, ' + lightboxTranslate.y + 'px) scale(' + lightboxScale + ')';
-  }
-
-  function zoomLightbox(delta) {
-    lightboxScale = Math.min(5, Math.max(1, lightboxScale + delta));
-    if (lightboxScale === 1) lightboxTranslate = { x: 0, y: 0 };
-    applyLightboxTransform();
-  }
-
-  function bindLightbox() {
-    var backdrop = document.getElementById('lightboxBackdrop');
-    var lbImg = document.getElementById('lightboxImg');
-
-    // ຄລິກຮູບໃດໆທີ່ມີ class thumb/thumb-wide ໃນທົ່ວແອັບ (ລາຍຊື່, ລາຍລະອຽດ,
-    // ລາຍງານ, ຕົວຢ່າງໃນຟອມ) ໃຫ້ເປີດພຣີວິວແບບເຕັມຈໍໄດ້ໂດຍບໍ່ຕ້ອງຜູກເທື່ອລະບ່ອນ.
-    document.addEventListener('click', function (e) {
-      var img = e.target.closest('img.thumb, img.thumb-wide');
-      if (img && img.src) { openLightbox(img.src); }
+    document.addEventListener('DOMContentLoaded', function () {
+      bindTabs();
+      bindStudentModal();
+      bindConfirmModal();
+      bindDetailModal();
+      bindLightbox();
+      bindSettingsUI();
+      bindReportUI();
+      loadAll();
     });
 
-    document.getElementById('btnLightboxClose').addEventListener('click', closeLightbox);
-    backdrop.addEventListener('click', function (e) {
-      if (e.target === backdrop) closeLightbox();
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !backdrop.classList.contains('hidden')) closeLightbox();
-    });
+    /* ---------------- Image lightbox (click any photo to preview / zoom) ---------------- */
 
-    backdrop.addEventListener('wheel', function (e) {
-      e.preventDefault();
-      zoomLightbox(e.deltaY < 0 ? 0.2 : -0.2);
-    }, { passive: false });
+    var lightboxScale = 1;
+    var lightboxTranslate = { x: 0, y: 0 };
+    var lightboxDragging = false;
+    var lightboxDragStart = null;
 
-    lbImg.addEventListener('dblclick', function () {
-      lightboxScale = lightboxScale > 1 ? 1 : 2.5;
+    function openLightbox(src) {
+      lightboxScale = 1;
       lightboxTranslate = { x: 0, y: 0 };
+      var img = document.getElementById('lightboxImg');
+      img.src = src;
       applyLightboxTransform();
-    });
+      document.getElementById('lightboxBackdrop').classList.remove('hidden');
+    }
 
-    lbImg.addEventListener('mousedown', function (e) {
-      if (lightboxScale <= 1) return;
-      e.preventDefault();
-      lightboxDragging = true;
-      lbImg.classList.add('dragging');
-      lightboxDragStart = { x: e.clientX - lightboxTranslate.x, y: e.clientY - lightboxTranslate.y };
-    });
-    document.addEventListener('mousemove', function (e) {
-      if (!lightboxDragging) return;
-      lightboxTranslate = { x: e.clientX - lightboxDragStart.x, y: e.clientY - lightboxDragStart.y };
+    function closeLightbox() {
+      document.getElementById('lightboxBackdrop').classList.add('hidden');
+      document.getElementById('lightboxImg').src = '';
+    }
+
+    function applyLightboxTransform() {
+      var img = document.getElementById('lightboxImg');
+      img.style.transform = 'translate(' + lightboxTranslate.x + 'px, ' + lightboxTranslate.y + 'px) scale(' + lightboxScale + ')';
+    }
+
+    function zoomLightbox(delta) {
+      lightboxScale = Math.min(5, Math.max(1, lightboxScale + delta));
+      if (lightboxScale === 1) lightboxTranslate = { x: 0, y: 0 };
       applyLightboxTransform();
-    });
-    document.addEventListener('mouseup', function () {
-      lightboxDragging = false;
-      lbImg.classList.remove('dragging');
-    });
-  }
+    }
 
-  /* ---------------- Custom confirm dialog (replaces window.confirm) ---------------- */
+    function bindLightbox() {
+      var backdrop = document.getElementById('lightboxBackdrop');
+      var lbImg = document.getElementById('lightboxImg');
 
-  var confirmCallback = null;
-
-  function showConfirm(message, onConfirm, opts) {
-    opts = opts || {};
-    document.getElementById('confirmModalTitle').textContent = opts.title || 'ຢືນຢັນການດຳເນີນການ';
-    document.getElementById('confirmModalMessage').textContent = message;
-    var okBtn = document.getElementById('btnConfirmOk');
-    okBtn.textContent = opts.okText || 'ລຶບ';
-    okBtn.className = opts.danger === false ? '' : 'danger';
-    confirmCallback = onConfirm;
-    document.getElementById('confirmModalBackdrop').classList.remove('hidden');
-  }
-
-  function closeConfirmModal() {
-    document.getElementById('confirmModalBackdrop').classList.add('hidden');
-    confirmCallback = null;
-  }
-
-  function bindConfirmModal() {
-    document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
-    document.getElementById('btnConfirmClose').addEventListener('click', closeConfirmModal);
-    document.getElementById('btnConfirmOk').addEventListener('click', function () {
-      var cb = confirmCallback;
-      closeConfirmModal();
-      if (cb) cb();
-    });
-  }
-
-  function bindTabs() {
-    document.querySelectorAll('.tab-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
-        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.add('hidden'); });
-        btn.classList.add('active');
-        document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
-        if (btn.dataset.tab === 'report') renderReport();
+      // ຄລິກຮູບໃດໆທີ່ມີ class thumb/thumb-wide ໃນທົ່ວແອັບ (ລາຍຊື່, ລາຍລະອຽດ,
+      // ລາຍງານ, ຕົວຢ່າງໃນຟອມ) ໃຫ້ເປີດພຣີວິວແບບເຕັມຈໍໄດ້ໂດຍບໍ່ຕ້ອງຜູກເທື່ອລະບ່ອນ.
+      document.addEventListener('click', function (e) {
+        var img = e.target.closest('img.thumb, img.thumb-wide');
+        if (img && img.src) { openLightbox(img.src); }
       });
-    });
-    document.querySelector('.tab-btn[data-tab="list"]').classList.add('active');
-  }
 
-  function loadAll() {
-    google.script.run.withSuccessHandler(function (data) {
-      STATE.students = data.students || [];
-      STATE.categories = data.categories || [];
-      STATE.settings = data.settings || {};
-      renderCategoryOptions();
-      renderStudentTable();
-      renderSettingsForm();
-      updateBadge();
-    }).withFailureHandler(showError).getAllData();
-  }
-
-  function updateBadge() {
-    document.getElementById('studentCountBadge').textContent = STATE.students.length + ' ຄົນ';
-  }
-
-  function categoryShortLabelById(id) {
-    var c = STATE.categories.find(function (c) { return c.ID === id; });
-    return c ? categoryShortLabel(c) : '(ບໍ່ລະບຸ)';
-  }
-
-  // ຕັດເລກໂຣມັນ+"ຊັ້ນສູງ" ອອກ ໃຫ້ເຫຼືອແຕ່ຊື່ສາຂາວິຊາສັ້ນໆ ເຊັ່ນ "ບໍລິຫານທຸລະກິດ"
-  function categoryShortLabel(c) {
-    return (c.Name || '').replace(/^[IVX]+\.\s*ຊັ້ນສູງ\s*/, '');
-  }
-
-  // ເລກປີ ค.ศ. ปัจจุบัน 2 ตัวท้าย เช่น 2026 -> "26"
-  function currentYearSuffix() {
-    return String(new Date().getFullYear() % 100).padStart(2, '0');
-  }
-
-  /* ---------------- Student list ---------------- */
-
-  function renderCategoryOptions() {
-    var filter = document.getElementById('filterCategory');
-    var modalSelect = document.getElementById('f_CategoryId');
-    filter.innerHTML = '<option value="">ທຸກສາຂາວິຊາ</option>';
-    modalSelect.innerHTML = '';
-    STATE.categories
-      .slice()
-      .sort(function (a, b) { return (a.SortOrder || 0) - (b.SortOrder || 0); })
-      .forEach(function (c) {
-        var label = categoryShortLabel(c);
-        filter.appendChild(new Option(label, c.ID));
-        modalSelect.appendChild(new Option(label, c.ID));
+      document.getElementById('btnLightboxClose').addEventListener('click', closeLightbox);
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) closeLightbox();
       });
-  }
-
-  function currentFilteredStudents() {
-    var q = document.getElementById('searchInput').value.trim().toLowerCase();
-    var cat = document.getElementById('filterCategory').value;
-    return STATE.students
-      .slice()
-      .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
-      .filter(function (s) {
-        if (cat && s.CategoryId !== cat) return false;
-        if (!q) return true;
-        var hay = [s.GivenName, s.Surname, s.EnglishName, s.Village, s.District, s.Province]
-          .join(' ').toLowerCase();
-        return hay.indexOf(q) !== -1;
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !backdrop.classList.contains('hidden')) closeLightbox();
       });
-  }
 
-  function renderStudentTable() {
-    var tbody = document.getElementById('studentTableBody');
-    var list = currentFilteredStudents();
-    tbody.innerHTML = '';
-    document.getElementById('listEmptyState').classList.toggle('hidden', list.length > 0);
+      backdrop.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        zoomLightbox(e.deltaY < 0 ? 0.2 : -0.2);
+      }, { passive: false });
 
-    list.forEach(function (s) {
-      var tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td>' + escapeHtml(s.Order) + '</td>' +
-        '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
-        '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
-        '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
-        '<td class="name-cell eng">' + escapeHtml(s.EnglishName || '') + '</td>' +
-        '<td>' + escapeHtml(s.DOB || '') + '</td>' +
-        '<td>' + escapeHtml(s.Village || '') + '</td>' +
-        '<td>' + escapeHtml(categoryShortLabelById(s.CategoryId)) + '</td>' +
-        '<td><div class="row-actions">' +
+      lbImg.addEventListener('dblclick', function () {
+        lightboxScale = lightboxScale > 1 ? 1 : 2.5;
+        lightboxTranslate = { x: 0, y: 0 };
+        applyLightboxTransform();
+      });
+
+      lbImg.addEventListener('mousedown', function (e) {
+        if (lightboxScale <= 1) return;
+        e.preventDefault();
+        lightboxDragging = true;
+        lbImg.classList.add('dragging');
+        lightboxDragStart = { x: e.clientX - lightboxTranslate.x, y: e.clientY - lightboxTranslate.y };
+      });
+      document.addEventListener('mousemove', function (e) {
+        if (!lightboxDragging) return;
+        lightboxTranslate = { x: e.clientX - lightboxDragStart.x, y: e.clientY - lightboxDragStart.y };
+        applyLightboxTransform();
+      });
+      document.addEventListener('mouseup', function () {
+        lightboxDragging = false;
+        lbImg.classList.remove('dragging');
+      });
+    }
+
+    /* ---------------- Custom confirm dialog (replaces window.confirm) ---------------- */
+
+    var confirmCallback = null;
+
+    function showConfirm(message, onConfirm, opts) {
+      opts = opts || {};
+      document.getElementById('confirmModalTitle').textContent = opts.title || 'ຢືນຢັນການດຳເນີນການ';
+      document.getElementById('confirmModalMessage').textContent = message;
+      var okBtn = document.getElementById('btnConfirmOk');
+      okBtn.textContent = opts.okText || 'ລຶບ';
+      okBtn.className = opts.danger === false ? '' : 'danger';
+      confirmCallback = onConfirm;
+      document.getElementById('confirmModalBackdrop').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModalBackdrop').classList.add('hidden');
+      confirmCallback = null;
+    }
+
+    function bindConfirmModal() {
+      document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
+      document.getElementById('btnConfirmClose').addEventListener('click', closeConfirmModal);
+      document.getElementById('btnConfirmOk').addEventListener('click', function () {
+        var cb = confirmCallback;
+        closeConfirmModal();
+        if (cb) cb();
+      });
+    }
+
+    function bindTabs() {
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+          document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.add('hidden'); });
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+          if (btn.dataset.tab === 'report') renderReport();
+        });
+      });
+      document.querySelector('.tab-btn[data-tab="list"]').classList.add('active');
+    }
+
+    function loadAll() {
+      google.script.run.withSuccessHandler(function (data) {
+        STATE.students = data.students || [];
+        STATE.categories = data.categories || [];
+        STATE.settings = data.settings || {};
+        renderCategoryOptions();
+        renderStudentTable();
+        renderSettingsForm();
+        updateBadge();
+      }).withFailureHandler(showError).getAllData();
+    }
+
+    function updateBadge() {
+      document.getElementById('studentCountBadge').textContent = STATE.students.length + ' ຄົນ';
+    }
+
+    function categoryShortLabelById(id) {
+      var c = STATE.categories.find(function (c) { return c.ID === id; });
+      return c ? categoryShortLabel(c) : '(ບໍ່ລະບຸ)';
+    }
+
+    // ຕັດເລກໂຣມັນ+"ຊັ້ນສູງ" ອອກ ໃຫ້ເຫຼືອແຕ່ຊື່ສາຂາວິຊາສັ້ນໆ ເຊັ່ນ "ບໍລິຫານທຸລະກິດ"
+    function categoryShortLabel(c) {
+      return (c.Name || '').replace(/^[IVX]+\.\s*ຊັ້ນສູງ\s*/, '');
+    }
+
+    // ເລກປີ ค.ศ. ปัจจุบัน 2 ตัวท้าย เช่น 2026 -> "26"
+    function currentYearSuffix() {
+      return String(new Date().getFullYear() % 100).padStart(2, '0');
+    }
+
+    /* ---------------- Student list ---------------- */
+
+    function renderCategoryOptions() {
+      var filter = document.getElementById('filterCategory');
+      var modalSelect = document.getElementById('f_CategoryId');
+      filter.innerHTML = '<option value="">ທຸກສາຂາວິຊາ</option>';
+      modalSelect.innerHTML = '';
+      STATE.categories
+        .slice()
+        .sort(function (a, b) { return (a.SortOrder || 0) - (b.SortOrder || 0); })
+        .forEach(function (c) {
+          var label = categoryShortLabel(c);
+          filter.appendChild(new Option(label, c.ID));
+          modalSelect.appendChild(new Option(label, c.ID));
+        });
+    }
+
+    function currentFilteredStudents() {
+      var q = document.getElementById('searchInput').value.trim().toLowerCase();
+      var cat = document.getElementById('filterCategory').value;
+      return STATE.students
+        .slice()
+        .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
+        .filter(function (s) {
+          if (cat && s.CategoryId !== cat) return false;
+          if (!q) return true;
+          var hay = [s.GivenName, s.Surname, s.EnglishName, s.Village, s.District, s.Province]
+            .join(' ').toLowerCase();
+          return hay.indexOf(q) !== -1;
+        });
+    }
+
+    function renderStudentTable() {
+      var tbody = document.getElementById('studentTableBody');
+      var list = currentFilteredStudents();
+      tbody.innerHTML = '';
+      document.getElementById('listEmptyState').classList.toggle('hidden', list.length > 0);
+
+      list.forEach(function (s) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + escapeHtml(s.Order) + '</td>' +
+          '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
+          '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
+          '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
+          '<td class="name-cell eng">' + escapeHtml(s.EnglishName || '') + '</td>' +
+          '<td>' + escapeHtml(s.DOB || '') + '</td>' +
+          '<td>' + escapeHtml(s.Village || '') + '</td>' +
+          '<td>' + escapeHtml(categoryShortLabelById(s.CategoryId)) + '</td>' +
+          '<td><div class="row-actions">' +
           '<button class="secondary" onclick="viewStudentDetails(\'' + s.ID + '\')">ລາຍລະອຽດ</button>' +
           '<button class="ghost" onclick="editStudent(\'' + s.ID + '\')">ແກ້ໄຂ</button>' +
           '<button class="danger" onclick="removeStudent(\'' + s.ID + '\')">ລຶບ</button>' +
-        '</div></td>';
-      tbody.appendChild(tr);
-    });
-  }
-
-  document.addEventListener('input', function (e) {
-    if (e.target && (e.target.id === 'searchInput')) renderStudentTable();
-  });
-  document.addEventListener('change', function (e) {
-    if (e.target && e.target.id === 'filterCategory') renderStudentTable();
-  });
-
-  /* ---------------- Student modal ---------------- */
-
-  var pendingPhotoBase64 = null;
-  var pendingPhotoMime = null;
-  var pendingDiplomaPhotoBase64 = null;
-  var pendingDiplomaPhotoMime = null;
-  var certAutoFlags = { lao: true, eng: true };
-
-  function pad3(n) {
-    n = Number(n) || 0;
-    return String(n).padStart(3, '0');
-  }
-
-  function computeCertNoLao(order, batchNo) {
-    return pad3(order) + '/ວຄທ/ຄມ.' + (batchNo || '');
-  }
-
-  function computeCertNoEnglish(order, batchNo) {
-    return pad3(order) + '/KBAC/KM.' + (batchNo || '');
-  }
-
-  // ຄາດຄະເນເລກລຳດັບຫຼ້າສຸດຖ້າແຊກນັກສຶກສາໃໝ່ເຂົ້າໝວດນີ້ - ຄືກັນກັບການຄິດໄລ່
-  // ຕົວຈິງຂອງ renumberStudents_() ຝັ່ງເຊີບເວີ (ນັກສຶກສາທຸກຄົນທີ່ຢູ່ໝວດກ່ອນໜ້າ
-  // ບວກກັບຈຳນວນທີ່ຢູ່ໃນໝວດດຽວກັນ ບວກ 1).
-  function predictNextOrderForCategory(categoryId) {
-    var targetCat = STATE.categories.find(function (c) { return c.ID === categoryId; });
-    var targetSort = targetCat ? (targetCat.SortOrder || 0) : 999;
-    var countBefore = 0;
-    var countIn = 0;
-    STATE.students.forEach(function (s) {
-      var c = STATE.categories.find(function (cc) { return cc.ID === s.CategoryId; });
-      var sortVal = c ? (c.SortOrder || 0) : 999;
-      if (sortVal < targetSort) countBefore++;
-      else if (s.CategoryId === categoryId) countIn++;
-    });
-    return countBefore + countIn + 1;
-  }
-
-  function refreshCertDefaults() {
-    var order = document.getElementById('f_Order').value;
-    var batch = document.getElementById('f_BatchNo').value;
-    if (certAutoFlags.lao) document.getElementById('f_CertNoLao').value = computeCertNoLao(order, batch);
-    if (certAutoFlags.eng) document.getElementById('f_CertNoEnglish').value = computeCertNoEnglish(order, batch);
-  }
-
-  function bindStudentModal() {
-    document.getElementById('btnAddStudent').addEventListener('click', function () { openStudentModal(null); });
-    document.getElementById('btnCancelStudent').addEventListener('click', closeStudentModal);
-    document.getElementById('btnCloseStudent').addEventListener('click', closeStudentModal);
-    document.getElementById('btnSaveStudent').addEventListener('click', saveStudentForm);
-
-    document.getElementById('f_BatchNo').addEventListener('input', refreshCertDefaults);
-    document.getElementById('f_CertNoLao').addEventListener('input', function () { certAutoFlags.lao = false; });
-    document.getElementById('f_CertNoEnglish').addEventListener('input', function () { certAutoFlags.eng = false; });
-    document.getElementById('f_CategoryId').addEventListener('change', function () {
-      // ນັກສຶກສາໃໝ່ (ບໍ່ມີ f_ID) ເທົ່ານັ້ນທີ່ຈະຖືກແຊກທ້າຍໝວດອັດຕະໂນມັດ
-      // ຕາມສາຂາວິຊາທີ່ເລືອກ. ນັກສຶກສາເກົ່າຄົງລຳດັບເດີມໄວ້ຕອນຍ້າຍໝວດ.
-      if (!document.getElementById('f_ID').value) {
-        document.getElementById('f_Order').value = predictNextOrderForCategory(this.value);
-        refreshCertDefaults();
-      }
-    });
-
-    bindPhotoInput('f_PhotoFile', 'f_PhotoPreview', function (base64, mime) {
-      pendingPhotoBase64 = base64;
-      pendingPhotoMime = mime;
-    });
-    bindPhotoInput('f_DiplomaPhotoFile', 'f_DiplomaPhotoPreview', function (base64, mime) {
-      pendingDiplomaPhotoBase64 = base64;
-      pendingDiplomaPhotoMime = mime;
-    });
-  }
-
-  function bindPhotoInput(fileInputId, previewId, onLoaded) {
-    document.getElementById(fileInputId).addEventListener('change', function (e) {
-      var file = e.target.files[0];
-      if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        var result = reader.result; // data:image/png;base64,xxxx
-        var parts = result.split(',');
-        onLoaded(parts[1], file.type);
-        var preview = document.getElementById(previewId);
-        preview.src = result;
-        preview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function populatePhotoField(url, fileInputId, previewId, urlFieldId) {
-    document.getElementById(urlFieldId).value = url || '';
-    document.getElementById(fileInputId).value = '';
-    var preview = document.getElementById(previewId);
-    if (url) { preview.src = url; preview.style.display = 'block'; }
-    else { preview.style.display = 'none'; }
-  }
-
-  function openStudentModal(id) {
-    pendingPhotoBase64 = null;
-    pendingPhotoMime = null;
-    pendingDiplomaPhotoBase64 = null;
-    pendingDiplomaPhotoMime = null;
-    var s = id ? STATE.students.find(function (x) { return x.ID === id; }) : null;
-    document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
-    document.getElementById('f_ID').value = s ? s.ID : '';
-    var initialCategoryId = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
-    document.getElementById('f_CategoryId').value = initialCategoryId;
-    document.getElementById('f_Order').value = s ? s.Order || '' : predictNextOrderForCategory(initialCategoryId);
-    document.getElementById('f_BatchNo').value = s ? (s.BatchNo || currentYearSuffix()) : currentYearSuffix();
-    document.getElementById('f_GivenName').value = s ? s.GivenName || '' : '';
-    document.getElementById('f_Surname').value = s ? s.Surname || '' : '';
-    document.getElementById('f_EnglishName').value = s ? s.EnglishName || '' : '';
-    document.getElementById('f_DOB').value = s ? s.DOB || '' : '';
-    document.getElementById('f_Gender').value = s ? s.Gender || 'M' : 'M';
-    document.getElementById('f_Village').value = s ? s.Village || '' : '';
-    document.getElementById('f_District').value = s ? s.District || '' : '';
-    document.getElementById('f_Province').value = s ? s.Province || '' : '';
-    certAutoFlags = { lao: !(s && s.CertNoLao), eng: !(s && s.CertNoEnglish) };
-    document.getElementById('f_CertNoLao').value = s ? s.CertNoLao || '' : '';
-    document.getElementById('f_CertNoEnglish').value = s ? s.CertNoEnglish || '' : '';
-    refreshCertDefaults();
-    document.getElementById('f_DeptRegNo').value = s ? s.DeptRegNo || '' : '';
-    document.getElementById('f_DiplomaM6').value = s ? s.DiplomaM6 || '' : '';
-    document.getElementById('f_DiplomaM7').value = s ? s.DiplomaM7 || '' : '';
-    populatePhotoField(s ? s.PhotoUrl : '', 'f_PhotoFile', 'f_PhotoPreview', 'f_PhotoUrl');
-    populatePhotoField(s ? s.DiplomaPhotoUrl : '', 'f_DiplomaPhotoFile', 'f_DiplomaPhotoPreview', 'f_DiplomaPhotoUrl');
-
-    document.getElementById('studentModalBackdrop').classList.remove('hidden');
-  }
-
-  function closeStudentModal() {
-    document.getElementById('studentModalBackdrop').classList.add('hidden');
-  }
-
-  function saveStudentForm() {
-    var btn = document.getElementById('btnSaveStudent');
-    btn.disabled = true;
-
-    var categoryId = document.getElementById('f_CategoryId').value;
-    var category = STATE.categories.find(function (c) { return c.ID === categoryId; });
-
-    var student = {
-      ID: document.getElementById('f_ID').value || undefined,
-      Order: document.getElementById('f_Order').value || undefined,
-      BatchNo: document.getElementById('f_BatchNo').value,
-      CategoryId: categoryId,
-      GivenName: document.getElementById('f_GivenName').value,
-      Surname: document.getElementById('f_Surname').value,
-      EnglishName: document.getElementById('f_EnglishName').value,
-      DOB: document.getElementById('f_DOB').value,
-      Gender: document.getElementById('f_Gender').value,
-      Village: document.getElementById('f_Village').value,
-      District: document.getElementById('f_District').value,
-      Province: document.getElementById('f_Province').value,
-      Major: category ? category.Major : '',
-      CertNoLao: document.getElementById('f_CertNoLao').value,
-      CertNoEnglish: document.getElementById('f_CertNoEnglish').value,
-      DeptRegNo: document.getElementById('f_DeptRegNo').value,
-      DiplomaM6: document.getElementById('f_DiplomaM6').value,
-      DiplomaM7: document.getElementById('f_DiplomaM7').value,
-      PhotoUrl: document.getElementById('f_PhotoUrl').value,
-      DiplomaPhotoUrl: document.getElementById('f_DiplomaPhotoUrl').value
-    };
-
-    function fail(err) { showError(err); btn.disabled = false; }
-
-    function finishSave() {
-      google.script.run.withSuccessHandler(function (data) {
-        STATE.students = data.students;
-        STATE.categories = data.categories;
-        renderStudentTable();
-        updateBadge();
-        closeStudentModal();
-        showToast('ບັນທຶກຂໍ້ມູນສຳເລັດ');
-        btn.disabled = false;
-      }).withFailureHandler(fail).upsertStudent(student);
-    }
-
-    function uploadIfPending(base64, mime, fileNamePrefix, field, next) {
-      if (!base64) { next(); return; }
-      google.script.run.withSuccessHandler(function (url) {
-        student[field] = url;
-        next();
-      }).withFailureHandler(fail).uploadPhoto(base64, mime, fileNamePrefix + '-' + Date.now());
-    }
-
-    uploadIfPending(pendingPhotoBase64, pendingPhotoMime, 'student', 'PhotoUrl', function () {
-      uploadIfPending(pendingDiplomaPhotoBase64, pendingDiplomaPhotoMime, 'diploma', 'DiplomaPhotoUrl', finishSave);
-    });
-  }
-
-  function editStudent(id) { openStudentModal(id); }
-
-  function removeStudent(id) {
-    showConfirm('ຢືນຢັນການລຶບຂໍ້ມູນນັກສຶກສານີ້?', function () {
-      google.script.run.withSuccessHandler(function (data) {
-        STATE.students = data.students;
-        STATE.categories = data.categories;
-        renderStudentTable();
-        updateBadge();
-        showToast('ລຶບຂໍ້ມູນສຳເລັດ');
-      }).withFailureHandler(showError).deleteStudent(id);
-    }, { title: 'ຢືນຢັນການລຶບ' });
-  }
-
-  /* ---------------- Student detail view ---------------- */
-
-  var currentDetailStudentId = null;
-
-  function bindDetailModal() {
-    document.getElementById('btnDetailClose').addEventListener('click', closeDetailModal);
-    document.getElementById('btnDetailCloseFooter').addEventListener('click', closeDetailModal);
-    document.getElementById('btnDetailEdit').addEventListener('click', function () {
-      var id = currentDetailStudentId;
-      closeDetailModal();
-      openStudentModal(id);
-    });
-  }
-
-  function closeDetailModal() {
-    document.getElementById('detailModalBackdrop').classList.add('hidden');
-    currentDetailStudentId = null;
-  }
-
-  function detailRow(label, value) {
-    return '<div class="detail-row"><div class="k">' + escapeHtml(label) + '</div><div class="v">' + escapeHtml(value || '-') + '</div></div>';
-  }
-
-  function viewStudentDetails(id) {
-    var s = STATE.students.find(function (x) { return x.ID === id; });
-    if (!s) return;
-    currentDetailStudentId = id;
-
-    var html = '<div class="detail-photos">';
-    html += '<div class="detail-photo-box">' +
-      (s.PhotoUrl
-        ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '" style="width:110px;height:140px">'
-        : '<div class="no-photo" style="width:110px;height:140px">ບໍ່ມີຮູບ</div>') +
-      '<span>ຮູບພາບ</span></div>';
-    html += '<div class="detail-photo-box">' +
-      (s.DiplomaPhotoUrl
-        ? '<img class="thumb-wide" src="' + escapeAttr(s.DiplomaPhotoUrl) + '" style="width:220px;height:140px">'
-        : '<div class="no-photo" style="width:220px;height:140px">ບໍ່ມີຮູບໃບປະກາດ</div>') +
-      '<span>ຮູບໃບປະກາດ</span></div>';
-    html += '</div>';
-
-    html += '<div class="detail-grid">';
-    html += detailRow('ເລກລຳດັບ (ລ/ດ)', s.Order);
-    html += detailRow('ຮຸ່ນ', s.BatchNo);
-    html += detailRow('ສາຂາວິຊາ', categoryShortLabelById(s.CategoryId));
-    html += detailRow('ຄຳນຳໜ້າ+ຊື່', s.GivenName);
-    html += detailRow('ນາມສະກຸນ', s.Surname);
-    html += detailRow('ຊື່ (ພາສາອັງກິດ)', s.EnglishName);
-    html += detailRow('ວັນເດືອນປີເກີດ', s.DOB);
-    html += detailRow('ເພດ', s.Gender === 'F' ? 'ຍິງ' : 'ຊາຍ');
-    html += detailRow('ບ້ານ', s.Village);
-    html += detailRow('ເມືອງ/ນະຄອນ', s.District);
-    html += detailRow('ແຂວງ', s.Province);
-    html += detailRow('ວິຊາສະເພາະ', s.Major);
-    html += detailRow('ທະບຽນທາງວິທະຍາໄລ (ລາວ)', s.CertNoLao);
-    html += detailRow('ທະບຽນທາງວິທະຍາໄລ (ອັງກິດ)', s.CertNoEnglish);
-    html += detailRow('ທະບຽນກົມການສຶກສາຊັ້ນສູງ', s.DeptRegNo);
-    html += detailRow('ໃບປະກາດ ມ.6', s.DiplomaM6);
-    html += detailRow('ໃບປະກາດ ມ.7', s.DiplomaM7);
-    html += '</div>';
-
-    document.getElementById('detailModalBody').innerHTML = html;
-    document.getElementById('detailModalBackdrop').classList.remove('hidden');
-  }
-
-  /* ---------------- Settings ---------------- */
-
-  function bindSettingsUI() {
-    document.getElementById('btnSaveSettings').addEventListener('click', function () {
-      var obj = {};
-      SETTINGS_FIELDS.forEach(function (f) {
-        obj[f[0]] = document.getElementById('set_' + f[0]).value;
+          '</div></td>';
+        tbody.appendChild(tr);
       });
-      google.script.run.withSuccessHandler(function (settings) {
-        STATE.settings = settings;
-        showToast('ບັນທຶກການຕັ້ງຄ່າສຳເລັດ');
-      }).withFailureHandler(showError).saveSettings(obj);
+    }
+
+    document.addEventListener('input', function (e) {
+      if (e.target && (e.target.id === 'searchInput')) renderStudentTable();
     });
-  }
-
-  function renderSettingsForm() {
-    var container = document.getElementById('settingsForm');
-    container.innerHTML = '';
-    SETTINGS_FIELDS.forEach(function (f) {
-      var div = document.createElement('div');
-      div.className = 'field';
-      div.innerHTML = '<label>' + f[1] + '</label><input type="text" id="set_' + f[0] + '" style="width:100%" value="' + escapeAttr(STATE.settings[f[0]] || '') + '">';
-      container.appendChild(div);
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.id === 'filterCategory') renderStudentTable();
     });
-  }
 
-  /* ---------------- Report / print ---------------- */
+    /* ---------------- Student modal ---------------- */
 
-  function bindReportUI() {
-    document.getElementById('btnPrint').addEventListener('click', function () { window.print(); });
-    document.getElementById('btnRefreshReport').addEventListener('click', renderReport);
-  }
+    var pendingPhotoBase64 = null;
+    var pendingPhotoMime = null;
+    var pendingDiplomaPhotoBase64 = null;
+    var pendingDiplomaPhotoMime = null;
+    var certAutoFlags = { lao: true, eng: true };
 
-  function renderReport() {
-    google.script.run.withSuccessHandler(function (report) {
-      document.getElementById('reportRoot').innerHTML = buildReportHtml(report);
-    }).withFailureHandler(showError).getReportData();
-  }
+    function pad3(n) {
+      n = Number(n) || 0;
+      return String(n).padStart(3, '0');
+    }
 
-  function buildReportHtml(report) {
-    var st = report.settings;
-    var html = '';
+    function computeCertNoLao(order, batchNo) {
+      return pad3(order) + '/ວຄທ/ຄມ.' + (batchNo || '');
+    }
 
-    html += '<div class="report-header">';
-    html += '<div style="font-weight:700">' + escapeHtml(st.OrgLine1 || '') + '</div>';
-    html += '<div>' + escapeHtml(st.OrgLine2 || '') + '</div>';
-    html += '</div>';
-    html += '<div class="org-left">';
-    ['OrgLine3', 'OrgLine4', 'OrgLine5', 'OrgLine6', 'OrgLine7', 'OrgLine8'].forEach(function (k) {
-      if (st[k]) html += '<div>' + escapeHtml(st[k]) + '</div>';
-    });
-    html += '</div>';
+    function computeCertNoEnglish(order, batchNo) {
+      return pad3(order) + '/KBAC/KM.' + (batchNo || '');
+    }
 
-    html += '<div class="report-title">' + escapeHtml(st.ReportTitle || '') + '</div>';
-    if (st.ReportSubtitle) html += '<div class="report-subtitle">' + escapeHtml(st.ReportSubtitle) + '</div>';
+    // ຄາດຄະເນເລກລຳດັບຫຼ້າສຸດຖ້າແຊກນັກສຶກສາໃໝ່ເຂົ້າໝວດນີ້ - ຄືກັນກັບການຄິດໄລ່
+    // ຕົວຈິງຂອງ renumberStudents_() ຝັ່ງເຊີບເວີ (ນັກສຶກສາທຸກຄົນທີ່ຢູ່ໝວດກ່ອນໜ້າ
+    // ບວກກັບຈຳນວນທີ່ຢູ່ໃນໝວດດຽວກັນ ບວກ 1).
+    function predictNextOrderForCategory(categoryId) {
+      var targetCat = STATE.categories.find(function (c) { return c.ID === categoryId; });
+      var targetSort = targetCat ? (targetCat.SortOrder || 0) : 999;
+      var countBefore = 0;
+      var countIn = 0;
+      STATE.students.forEach(function (s) {
+        var c = STATE.categories.find(function (cc) { return cc.ID === s.CategoryId; });
+        var sortVal = c ? (c.SortOrder || 0) : 999;
+        if (sortVal < targetSort) countBefore++;
+        else if (s.CategoryId === categoryId) countIn++;
+      });
+      return countBefore + countIn + 1;
+    }
 
-    html += '<table><thead>';
-    html += '<tr>' +
-      '<th rowspan="2">ລ/ດ</th>' +
-      '<th colspan="2">ເລກທະບຽນນັກສຶກສາ</th>' +
-      '<th rowspan="2">ຮູບຖ່າຍ</th>' +
-      '<th rowspan="2">ຊື່</th>' +
-      '<th rowspan="2">ນາມສະກຸນ</th>' +
-      '<th rowspan="2">ຊື່ແລະນາມສະກຸນ<br>(ພາສາອັງກິດ)</th>' +
-      '<th rowspan="2">ວັນເດືອນປີເກີດ</th>' +
-      '<th rowspan="2">ບ້ານ</th>' +
-      '<th rowspan="2">ເມືອງ/ນະຄອນ</th>' +
-      '<th rowspan="2">ແຂວງ</th>' +
-      '<th rowspan="2">ລະຫັດວິຊາທີ່ຮຽນ<br>(ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</th>' +
-      '<th colspan="2">ທະບຽນທາງວິທະຍາໄລ</th>' +
-      '<th rowspan="2">ທະບຽນກົມການ<br>ສຶກສາຊັ້ນສູງ</th>' +
-      '<th colspan="2">ໃບປະກາດມ.ປາຍ</th>' +
-      '</tr>';
-    html += '<tr>' +
-      '<th></th><th></th>' +
-      '<th>ພາສາລາວ</th><th>ພາສາອັງກິດ</th>' +
-      '<th>ມ.6</th><th>ມ.7</th>' +
-      '</tr>';
-    html += '</thead><tbody>';
+    function refreshCertDefaults() {
+      var order = document.getElementById('f_Order').value;
+      var batch = document.getElementById('f_BatchNo').value;
+      if (certAutoFlags.lao) document.getElementById('f_CertNoLao').value = computeCertNoLao(order, batch);
+      if (certAutoFlags.eng) document.getElementById('f_CertNoEnglish').value = computeCertNoEnglish(order, batch);
+    }
 
-    report.groups.forEach(function (g) {
-      if (g.students.length === 0 && report.groups.length > 1) return;
-      html += '<tr><td colspan="17" class="category-heading">' + escapeHtml(g.category.Name) + '</td></tr>';
-      g.students
-        .slice()
-        .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
-        .forEach(function (s) {
-          html += '<tr>' +
-            '<td>' + escapeHtml(s.Order) + '</td>' +
-            '<td>' + escapeHtml(s.Order) + '</td>' +
-            '<td>' + escapeHtml(s.BatchNo) + '</td>' +
-            '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
-            '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
-            '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
-            '<td class="name-cell eng">' + escapeHtml(s.EnglishName || '') + '</td>' +
-            '<td>' + escapeHtml(s.DOB || '') + '</td>' +
-            '<td>' + escapeHtml(s.Village || '') + '</td>' +
-            '<td>' + escapeHtml(s.District || '') + '</td>' +
-            '<td>' + escapeHtml(s.Province || '') + '</td>' +
-            '<td class="eng">' + escapeHtml(s.Major || '') + '</td>' +
-            '<td>' + escapeHtml(s.CertNoLao || '') + '</td>' +
-            '<td class="eng">' + escapeHtml(s.CertNoEnglish || '') + '</td>' +
-            '<td>' + escapeHtml(s.DeptRegNo || '') + '</td>' +
-            '<td>' + escapeHtml(s.DiplomaM6 || '') + '</td>' +
-            '<td>' + escapeHtml(s.DiplomaM7 || '') + '</td>' +
-            '</tr>';
+    function bindStudentModal() {
+      document.getElementById('btnAddStudent').addEventListener('click', function () { openStudentModal(null); });
+      document.getElementById('btnCancelStudent').addEventListener('click', closeStudentModal);
+      document.getElementById('btnCloseStudent').addEventListener('click', closeStudentModal);
+      document.getElementById('btnSaveStudent').addEventListener('click', saveStudentForm);
+
+      document.getElementById('f_BatchNo').addEventListener('input', refreshCertDefaults);
+      document.getElementById('f_CertNoLao').addEventListener('input', function () { certAutoFlags.lao = false; });
+      document.getElementById('f_CertNoEnglish').addEventListener('input', function () { certAutoFlags.eng = false; });
+      document.getElementById('f_CategoryId').addEventListener('change', function () {
+        // ນັກສຶກສາໃໝ່ (ບໍ່ມີ f_ID) ເທົ່ານັ້ນທີ່ຈະຖືກແຊກທ້າຍໝວດອັດຕະໂນມັດ
+        // ຕາມສາຂາວິຊາທີ່ເລືອກ. ນັກສຶກສາເກົ່າຄົງລຳດັບເດີມໄວ້ຕອນຍ້າຍໝວດ.
+        if (!document.getElementById('f_ID').value) {
+          document.getElementById('f_Order').value = predictNextOrderForCategory(this.value);
+          refreshCertDefaults();
+        }
+      });
+
+      bindPhotoInput('f_PhotoFile', 'f_PhotoPreview', function (base64, mime) {
+        pendingPhotoBase64 = base64;
+        pendingPhotoMime = mime;
+      });
+      bindPhotoInput('f_DiplomaPhotoFile', 'f_DiplomaPhotoPreview', function (base64, mime) {
+        pendingDiplomaPhotoBase64 = base64;
+        pendingDiplomaPhotoMime = mime;
+      });
+    }
+
+    function bindPhotoInput(fileInputId, previewId, onLoaded) {
+      document.getElementById(fileInputId).addEventListener('change', function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          var result = reader.result; // data:image/png;base64,xxxx
+          var parts = result.split(',');
+          onLoaded(parts[1], file.type);
+          var preview = document.getElementById(previewId);
+          preview.src = result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function populatePhotoField(url, fileInputId, previewId, urlFieldId) {
+      document.getElementById(urlFieldId).value = url || '';
+      document.getElementById(fileInputId).value = '';
+      var preview = document.getElementById(previewId);
+      if (url) { preview.src = url; preview.style.display = 'block'; }
+      else { preview.style.display = 'none'; }
+    }
+
+    function openStudentModal(id) {
+      pendingPhotoBase64 = null;
+      pendingPhotoMime = null;
+      pendingDiplomaPhotoBase64 = null;
+      pendingDiplomaPhotoMime = null;
+      var s = id ? STATE.students.find(function (x) { return x.ID === id; }) : null;
+      document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
+      document.getElementById('f_ID').value = s ? s.ID : '';
+      var initialCategoryId = s ? s.CategoryId || '' : (STATE.categories[0] ? STATE.categories[0].ID : '');
+      document.getElementById('f_CategoryId').value = initialCategoryId;
+      document.getElementById('f_Order').value = s ? s.Order || '' : predictNextOrderForCategory(initialCategoryId);
+      document.getElementById('f_BatchNo').value = s ? (s.BatchNo || currentYearSuffix()) : currentYearSuffix();
+      document.getElementById('f_GivenName').value = s ? s.GivenName || '' : '';
+      document.getElementById('f_Surname').value = s ? s.Surname || '' : '';
+      document.getElementById('f_EnglishName').value = s ? s.EnglishName || '' : '';
+      document.getElementById('f_DOB').value = s ? s.DOB || '' : '';
+      document.getElementById('f_Gender').value = s ? s.Gender || 'M' : 'M';
+      document.getElementById('f_Village').value = s ? s.Village || '' : '';
+      document.getElementById('f_District').value = s ? s.District || '' : '';
+      document.getElementById('f_Province').value = s ? s.Province || '' : '';
+      certAutoFlags = { lao: !(s && s.CertNoLao), eng: !(s && s.CertNoEnglish) };
+      document.getElementById('f_CertNoLao').value = s ? s.CertNoLao || '' : '';
+      document.getElementById('f_CertNoEnglish').value = s ? s.CertNoEnglish || '' : '';
+      refreshCertDefaults();
+      document.getElementById('f_DeptRegNo').value = s ? s.DeptRegNo || '' : '';
+      document.getElementById('f_DiplomaM6').value = s ? s.DiplomaM6 || '' : '';
+      document.getElementById('f_DiplomaM7').value = s ? s.DiplomaM7 || '' : '';
+      populatePhotoField(s ? s.PhotoUrl : '', 'f_PhotoFile', 'f_PhotoPreview', 'f_PhotoUrl');
+      populatePhotoField(s ? s.DiplomaPhotoUrl : '', 'f_DiplomaPhotoFile', 'f_DiplomaPhotoPreview', 'f_DiplomaPhotoUrl');
+
+      document.getElementById('studentModalBackdrop').classList.remove('hidden');
+    }
+
+    function closeStudentModal() {
+      document.getElementById('studentModalBackdrop').classList.add('hidden');
+    }
+
+    function saveStudentForm() {
+      var btn = document.getElementById('btnSaveStudent');
+      btn.disabled = true;
+
+      var categoryId = document.getElementById('f_CategoryId').value;
+      var category = STATE.categories.find(function (c) { return c.ID === categoryId; });
+
+      var student = {
+        ID: document.getElementById('f_ID').value || undefined,
+        Order: document.getElementById('f_Order').value || undefined,
+        BatchNo: document.getElementById('f_BatchNo').value,
+        CategoryId: categoryId,
+        GivenName: document.getElementById('f_GivenName').value,
+        Surname: document.getElementById('f_Surname').value,
+        EnglishName: document.getElementById('f_EnglishName').value,
+        DOB: document.getElementById('f_DOB').value,
+        Gender: document.getElementById('f_Gender').value,
+        Village: document.getElementById('f_Village').value,
+        District: document.getElementById('f_District').value,
+        Province: document.getElementById('f_Province').value,
+        Major: category ? category.Major : '',
+        CertNoLao: document.getElementById('f_CertNoLao').value,
+        CertNoEnglish: document.getElementById('f_CertNoEnglish').value,
+        DeptRegNo: document.getElementById('f_DeptRegNo').value,
+        DiplomaM6: document.getElementById('f_DiplomaM6').value,
+        DiplomaM7: document.getElementById('f_DiplomaM7').value,
+        PhotoUrl: document.getElementById('f_PhotoUrl').value,
+        DiplomaPhotoUrl: document.getElementById('f_DiplomaPhotoUrl').value
+      };
+
+      function fail(err) { showError(err); btn.disabled = false; }
+
+      function finishSave() {
+        google.script.run.withSuccessHandler(function (data) {
+          STATE.students = data.students;
+          STATE.categories = data.categories;
+          renderStudentTable();
+          updateBadge();
+          closeStudentModal();
+          showToast('ບັນທຶກຂໍ້ມູນສຳເລັດ');
+          btn.disabled = false;
+        }).withFailureHandler(fail).upsertStudent(student);
+      }
+
+      function uploadIfPending(base64, mime, fileNamePrefix, field, next) {
+        if (!base64) { next(); return; }
+        google.script.run.withSuccessHandler(function (url) {
+          student[field] = url;
+          next();
+        }).withFailureHandler(fail).uploadPhoto(base64, mime, fileNamePrefix + '-' + Date.now());
+      }
+
+      uploadIfPending(pendingPhotoBase64, pendingPhotoMime, 'student', 'PhotoUrl', function () {
+        uploadIfPending(pendingDiplomaPhotoBase64, pendingDiplomaPhotoMime, 'diploma', 'DiplomaPhotoUrl', finishSave);
+      });
+    }
+
+    function editStudent(id) { openStudentModal(id); }
+
+    function removeStudent(id) {
+      showConfirm('ຢືນຢັນການລຶບຂໍ້ມູນນັກສຶກສານີ້?', function () {
+        google.script.run.withSuccessHandler(function (data) {
+          STATE.students = data.students;
+          STATE.categories = data.categories;
+          renderStudentTable();
+          updateBadge();
+          showToast('ລຶບຂໍ້ມູນສຳເລັດ');
+        }).withFailureHandler(showError).deleteStudent(id);
+      }, { title: 'ຢືນຢັນການລຶບ' });
+    }
+
+    /* ---------------- Student detail view ---------------- */
+
+    var currentDetailStudentId = null;
+
+    function bindDetailModal() {
+      document.getElementById('btnDetailClose').addEventListener('click', closeDetailModal);
+      document.getElementById('btnDetailCloseFooter').addEventListener('click', closeDetailModal);
+      document.getElementById('btnDetailEdit').addEventListener('click', function () {
+        var id = currentDetailStudentId;
+        closeDetailModal();
+        openStudentModal(id);
+      });
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModalBackdrop').classList.add('hidden');
+      currentDetailStudentId = null;
+    }
+
+    function detailRow(label, value) {
+      return '<div class="detail-row"><div class="k">' + escapeHtml(label) + '</div><div class="v">' + escapeHtml(value || '-') + '</div></div>';
+    }
+
+    function viewStudentDetails(id) {
+      var s = STATE.students.find(function (x) { return x.ID === id; });
+      if (!s) return;
+      currentDetailStudentId = id;
+
+      var html = '<div class="detail-photos">';
+      html += '<div class="detail-photo-box">' +
+        (s.PhotoUrl
+          ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '" style="width:110px;height:140px">'
+          : '<div class="no-photo" style="width:110px;height:140px">ບໍ່ມີຮູບ</div>') +
+        '<span>ຮູບພາບ</span></div>';
+      html += '<div class="detail-photo-box">' +
+        (s.DiplomaPhotoUrl
+          ? '<img class="thumb-wide" src="' + escapeAttr(s.DiplomaPhotoUrl) + '" style="width:220px;height:140px">'
+          : '<div class="no-photo" style="width:220px;height:140px">ບໍ່ມີຮູບໃບປະກາດ</div>') +
+        '<span>ຮູບໃບປະກາດ</span></div>';
+      html += '</div>';
+
+      html += '<div class="detail-grid">';
+      html += detailRow('ເລກລຳດັບ (ລ/ດ)', s.Order);
+      html += detailRow('ຮຸ່ນ', s.BatchNo);
+      html += detailRow('ສາຂາວິຊາ', categoryShortLabelById(s.CategoryId));
+      html += detailRow('ຄຳນຳໜ້າ+ຊື່', s.GivenName);
+      html += detailRow('ນາມສະກຸນ', s.Surname);
+      html += detailRow('ຊື່ (ພາສາອັງກິດ)', s.EnglishName);
+      html += detailRow('ວັນເດືອນປີເກີດ', s.DOB);
+      html += detailRow('ເພດ', s.Gender === 'F' ? 'ຍິງ' : 'ຊາຍ');
+      html += detailRow('ບ້ານ', s.Village);
+      html += detailRow('ເມືອງ/ນະຄອນ', s.District);
+      html += detailRow('ແຂວງ', s.Province);
+      html += detailRow('ວິຊາສະເພາະ', s.Major);
+      html += detailRow('ທະບຽນທາງວິທະຍາໄລ (ລາວ)', s.CertNoLao);
+      html += detailRow('ທະບຽນທາງວິທະຍາໄລ (ອັງກິດ)', s.CertNoEnglish);
+      html += detailRow('ທະບຽນກົມການສຶກສາຊັ້ນສູງ', s.DeptRegNo);
+      html += detailRow('ໃບປະກາດ ມ.6', s.DiplomaM6);
+      html += detailRow('ໃບປະກາດ ມ.7', s.DiplomaM7);
+      html += '</div>';
+
+      document.getElementById('detailModalBody').innerHTML = html;
+      document.getElementById('detailModalBackdrop').classList.remove('hidden');
+    }
+
+    /* ---------------- Settings ---------------- */
+
+    function bindSettingsUI() {
+      document.getElementById('btnSaveSettings').addEventListener('click', function () {
+        var obj = {};
+        SETTINGS_FIELDS.forEach(function (f) {
+          obj[f[0]] = document.getElementById('set_' + f[0]).value;
         });
-    });
+        google.script.run.withSuccessHandler(function (settings) {
+          STATE.settings = settings;
+          showToast('ບັນທຶກການຕັ້ງຄ່າສຳເລັດ');
+        }).withFailureHandler(showError).saveSettings(obj);
+      });
+    }
 
-    html += '</tbody></table>';
+    function renderSettingsForm() {
+      var container = document.getElementById('settingsForm');
+      container.innerHTML = '';
+      SETTINGS_FIELDS.forEach(function (f) {
+        var div = document.createElement('div');
+        div.className = 'field';
+        div.innerHTML = '<label>' + f[1] + '</label><input type="text" id="set_' + f[0] + '" style="width:100%" value="' + escapeAttr(STATE.settings[f[0]] || '') + '">';
+        container.appendChild(div);
+      });
+    }
 
-    html += '<div class="summary-block">';
-    report.summary.forEach(function (s) {
+    /* ---------------- Report / print ---------------- */
+
+    function bindReportUI() {
+      document.getElementById('btnPrint').addEventListener('click', function () { window.print(); });
+      document.getElementById('btnRefreshReport').addEventListener('click', renderReport);
+    }
+
+    function renderReport() {
+      google.script.run.withSuccessHandler(function (report) {
+        document.getElementById('reportRoot').innerHTML = buildReportHtml(report);
+      }).withFailureHandler(showError).getReportData();
+    }
+
+    function buildReportHtml(report) {
+      var st = report.settings;
+      var html = '';
+
+      html += '<div class="report-header">';
+      html += '<div style="font-weight:700">' + escapeHtml(st.OrgLine1 || '') + '</div>';
+      html += '<div>' + escapeHtml(st.OrgLine2 || '') + '</div>';
+      html += '</div>';
+      html += '<div class="org-left">';
+      ['OrgLine3', 'OrgLine4', 'OrgLine5', 'OrgLine6', 'OrgLine7', 'OrgLine8'].forEach(function (k) {
+        if (st[k]) html += '<div>' + escapeHtml(st[k]) + '</div>';
+      });
+      html += '</div>';
+
+      html += '<div class="report-title">' + escapeHtml(st.ReportTitle || '') + '</div>';
+      if (st.ReportSubtitle) html += '<div class="report-subtitle">' + escapeHtml(st.ReportSubtitle) + '</div>';
+
+      html += '<table><thead>';
+      html += '<tr>' +
+        '<th rowspan="2">ລ/ດ</th>' +
+        '<th colspan="2">ເລກທະບຽນນັກສຶກສາ</th>' +
+        '<th rowspan="2">ຮູບຖ່າຍ</th>' +
+        '<th rowspan="2">ຊື່</th>' +
+        '<th rowspan="2">ນາມສະກຸນ</th>' +
+        '<th rowspan="2">ຊື່ແລະນາມສະກຸນ<br>(ພາສາອັງກິດ)</th>' +
+        '<th rowspan="2">ວັນເດືອນປີເກີດ</th>' +
+        '<th rowspan="2">ບ້ານ</th>' +
+        '<th rowspan="2">ເມືອງ/ນະຄອນ</th>' +
+        '<th rowspan="2">ແຂວງ</th>' +
+        '<th rowspan="2">ລະຫັດວິຊາທີ່ຮຽນ<br>(ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</th>' +
+        '<th colspan="2">ທະບຽນທາງວິທະຍາໄລ</th>' +
+        '<th rowspan="2">ທະບຽນກົມການ<br>ສຶກສາຊັ້ນສູງ</th>' +
+        '<th colspan="2">ໃບປະກາດມ.ປາຍ</th>' +
+        '</tr>';
+      html += '<tr>' +
+        '<th></th><th></th>' +
+        '<th>ພາສາລາວ</th><th>ພາສາອັງກິດ</th>' +
+        '<th>ມ.6</th><th>ມ.7</th>' +
+        '</tr>';
+      html += '</thead><tbody>';
+
+      report.groups.forEach(function (g) {
+        if (g.students.length === 0 && report.groups.length > 1) return;
+        html += '<tr><td colspan="17" class="category-heading">' + escapeHtml(g.category.Name) + '</td></tr>';
+        g.students
+          .slice()
+          .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
+          .forEach(function (s) {
+            html += '<tr>' +
+              '<td>' + escapeHtml(s.Order) + '</td>' +
+              '<td>' + escapeHtml(s.Order) + '</td>' +
+              '<td>' + escapeHtml(s.BatchNo) + '</td>' +
+              '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
+              '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
+              '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
+              '<td class="name-cell eng">' + escapeHtml(s.EnglishName || '') + '</td>' +
+              '<td>' + escapeHtml(s.DOB || '') + '</td>' +
+              '<td>' + escapeHtml(s.Village || '') + '</td>' +
+              '<td>' + escapeHtml(s.District || '') + '</td>' +
+              '<td>' + escapeHtml(s.Province || '') + '</td>' +
+              '<td class="eng">' + escapeHtml(s.Major || '') + '</td>' +
+              '<td>' + escapeHtml(s.CertNoLao || '') + '</td>' +
+              '<td class="eng">' + escapeHtml(s.CertNoEnglish || '') + '</td>' +
+              '<td>' + escapeHtml(s.DeptRegNo || '') + '</td>' +
+              '<td>' + escapeHtml(s.DiplomaM6 || '') + '</td>' +
+              '<td>' + escapeHtml(s.DiplomaM7 || '') + '</td>' +
+              '</tr>';
+          });
+      });
+
+      html += '</tbody></table>';
+
+      html += '<div class="summary-block">';
+      report.summary.forEach(function (s) {
+        html += '<div class="summary-row">' +
+          '<div>' + escapeHtml(s.label) + '</div>' +
+          '<div>' + s.total + '</div>' +
+          '<div>ຄົນ, ຍິງ :</div>' +
+          '<div>' + s.female + '</div>' +
+          '<div>ຄົນ</div>' +
+          '</div>';
+      });
       html += '<div class="summary-row">' +
-        '<div>' + escapeHtml(s.label) + '</div>' +
-        '<div>' + s.total + '</div>' +
+        '<div>' + escapeHtml(st.GrandTotalLabel || '') + '</div>' +
+        '<div>' + report.grandTotal.total + '</div>' +
         '<div>ຄົນ, ຍິງ :</div>' +
-        '<div>' + s.female + '</div>' +
+        '<div>' + report.grandTotal.female + '</div>' +
         '<div>ຄົນ</div>' +
         '</div>';
-    });
-    html += '<div class="summary-row">' +
-      '<div>' + escapeHtml(st.GrandTotalLabel || '') + '</div>' +
-      '<div>' + report.grandTotal.total + '</div>' +
-      '<div>ຄົນ, ຍິງ :</div>' +
-      '<div>' + report.grandTotal.female + '</div>' +
-      '<div>ຄົນ</div>' +
-      '</div>';
-    html += '</div>';
+      html += '</div>';
 
-    html += '<div class="sign-date">' + escapeHtml(st.ApprovalDateLine || '') + '</div>';
-    html += '<div class="sign-row">' +
-      '<div>' + escapeHtml(st.ApprovalLeftTitle || '') + '</div>' +
-      '<div>' + escapeHtml(st.ApprovalRightTitle || '') + '</div>' +
-      '</div>';
+      html += '<div class="sign-date">' + escapeHtml(st.ApprovalDateLine || '') + '</div>';
+      html += '<div class="sign-row">' +
+        '<div>' + escapeHtml(st.ApprovalLeftTitle || '') + '</div>' +
+        '<div>' + escapeHtml(st.ApprovalRightTitle || '') + '</div>' +
+        '</div>';
 
-    return html;
-  }
+      return html;
+    }
 
-  /* ---------------- Utilities ---------------- */
+    /* ---------------- Utilities ---------------- */
 
-  function escapeHtml(str) {
-    if (str === undefined || str === null) return '';
-    return String(str)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-  function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
+    function escapeHtml(str) {
+      if (str === undefined || str === null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function escapeAttr(str) { return escapeHtml(str).replace(/"/g, '&quot;'); }
 
-  function showToast(msg, isError) {
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.toggle('error', !!isError);
-    t.classList.remove('hidden');
-    setTimeout(function () { t.classList.add('hidden'); }, 3000);
-  }
+    function showToast(msg, isError) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.toggle('error', !!isError);
+      t.classList.remove('hidden');
+      setTimeout(function () { t.classList.add('hidden'); }, 3000);
+    }
 
-  function showError(err) {
-    console.error(err);
-    showToast((err && err.message) ? err.message : 'ເກີດຂໍ້ຜິດພາດ', true);
-  }
+    function showError(err) {
+      console.error(err);
+      showToast((err && err.message) ? err.message : 'ເກີດຂໍ້ຜິດພາດ', true);
+    }
   </script>
 </body>
+
 </html>
