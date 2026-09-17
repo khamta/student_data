@@ -12,7 +12,7 @@ var SHEET_STUDENTS = 'Students';
 var SHEET_CATEGORIES = 'Categories';
 var SHEET_SETTINGS = 'Settings';
 var SHEET_PRINT_REPORT = 'ລາຍງານພິມ';
-var PHOTO_FOLDER_NAME = 'StudentPhotos_DoNotDelete';
+var IMAGE_SERVER_BASE = 'https://task-report.sdplao.com/api/image';
 var REPORT_FONT_LAO = 'Phetsarath';
 var REPORT_FONT_ENG = 'Times New Roman';
 var REPORT_COLS = 17;
@@ -403,21 +403,28 @@ function renumberStudents_() {
   });
 }
 
-/* ---- Photo upload to Google Drive ---- */
+/* ---- Photo upload to the external image server (task-report.sdplao.com) ---- */
 
 function uploadPhoto(base64Data, mimeType, fileName) {
-  var folder = getOrCreatePhotoFolder_();
   var bytes = Utilities.base64Decode(base64Data);
   var blob = Utilities.newBlob(bytes, mimeType, fileName || ('photo-' + Date.now()));
-  var file = folder.createFile(blob);
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return 'https://drive.google.com/uc?export=view&id=' + file.getId();
-}
 
-function getOrCreatePhotoFolder_() {
-  var iter = DriveApp.getFoldersByName(PHOTO_FOLDER_NAME);
-  if (iter.hasNext()) return iter.next();
-  return DriveApp.createFolder(PHOTO_FOLDER_NAME);
+  var response = UrlFetchApp.fetch(IMAGE_SERVER_BASE + '/upload', {
+    method: 'post',
+    payload: { image: blob },
+    muteHttpExceptions: true
+  });
+
+  var code = response.getResponseCode();
+  if (code < 200 || code >= 300) {
+    throw new Error('ອັບໂຫລດຮູບບໍ່ສຳເລັດ (HTTP ' + code + '): ' + response.getContentText());
+  }
+
+  var result = JSON.parse(response.getContentText());
+  if (!result.url) {
+    throw new Error('ອັບໂຫລດຮູບບໍ່ສຳເລັດ: ເຊີບເວີບໍ່ໄດ້ສົ່ງ URL ຄືນມາ');
+  }
+  return IMAGE_SERVER_BASE + '/uploads/' + result.url;
 }
 
 /* ---- Report data (grouped + summary counts) ---- */
