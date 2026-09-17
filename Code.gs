@@ -129,6 +129,20 @@ function onOpen() {
     .addToUi();
 }
 
+/**
+ * Simple trigger: fires when someone edits a cell directly in the sheet
+ * (not via the web app, which already refreshes the report through the
+ * upsertStudent/deleteStudent/saveSettings functions above). Keeps the
+ * "ລາຍງານພິມ" tab in sync in real time no matter who edits the raw data.
+ */
+function onEdit(e) {
+  if (!e || !e.range) return;
+  var editedSheet = e.range.getSheet().getName();
+  if (editedSheet === SHEET_STUDENTS || editedSheet === SHEET_CATEGORIES || editedSheet === SHEET_SETTINGS) {
+    updatePrintReportSheet();
+  }
+}
+
 function showHelp_() {
   var html = HtmlService.createHtmlOutput(
     '<p style="font-family:sans-serif">ໃຫ້ໄປທີ່ <b>Deploy &gt; Manage deployments</b> ' +
@@ -141,6 +155,7 @@ function showHelp_() {
 
 function ensureSheets_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var isFirstRun = !ss.getSheetByName(SHEET_STUDENTS);
 
   var categoriesSheet = ss.getSheetByName(SHEET_CATEGORIES);
   if (!categoriesSheet) {
@@ -188,6 +203,8 @@ function ensureSheets_() {
   if (sheet1 && ss.getSheets().length > 3 && sheet1.getLastRow() === 0) {
     ss.deleteSheet(sheet1);
   }
+
+  if (isFirstRun) updatePrintReportSheet();
 
   return { studentsSheet: studentsSheet, categoriesSheet: categoriesSheet, settingsSheet: settingsSheet };
 }
@@ -257,6 +274,7 @@ function saveSettings(settingsObj) {
       sheet.appendRow([key, settingsObj[key]]);
     }
   });
+  updatePrintReportSheet();
   return settingsToMap_(sheet);
 }
 
@@ -291,6 +309,7 @@ function upsertStudent(student) {
     sheet.appendRow(newRow);
   }
   renumberStudents_();
+  updatePrintReportSheet();
   return getAllData();
 }
 
@@ -318,6 +337,7 @@ function deleteStudent(id) {
   if (row === -1) throw new Error('ไม่พบข้อมูลนักศึกษา');
   s.studentsSheet.deleteRow(row);
   renumberStudents_();
+  updatePrintReportSheet();
   return getAllData();
 }
 
