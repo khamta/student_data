@@ -38,11 +38,12 @@ const DEFAULT_SETTINGS = {
   ApprovalRightTitle: 'ຜູ້ອໍານວຍການວິທະຍາໄລ ຄໍາສີສຸກ ບໍລິຫານທຸລະກິດ'
 };
 
+// ໝວດໝູ່ / ສາຂາວິຊາ ມີໄດ້ແຄ່ 4 ອັນນີ້ຄົງທີ່ (ບໍ່ມີໜ້າຈັດການແຍກຕ່າງຫາກອີກຕໍ່ໄປ)
 const DEFAULT_CATEGORIES = [
-  { ID: 'cat-1', Name: 'I. ຊັ້ນສູງ ບໍລິຫານທຸລະກິດ', SortOrder: 1, SummaryLabel: 'ສາຍບໍລິຫານທຸລະກິດ' },
-  { ID: 'cat-2', Name: 'II. ຊັ້ນສູງ ວິທະຍາສາດຄອມພິວເຕີ ແລະ ຂໍ້ມູນຂ່າວສານ(ໄອທີ)', SortOrder: 2, SummaryLabel: 'ສາຍໄອທີ' },
-  { ID: 'cat-3', Name: 'III. ຊັ້ນສູງ ພາສາອັງກິດທຸລະກິດ', SortOrder: 3, SummaryLabel: 'ສາຍພາສາອັງກິດ ທຸລະກິດ' },
-  { ID: 'cat-4', Name: 'IV. ຊັ້ນສູງ ການເງິນ-ການບັນຊີ', SortOrder: 4, SummaryLabel: 'ສາຍການເງິນ-ການບັນຊີ' }
+  { ID: 'cat-1', Name: 'I. ຊັ້ນສູງ ບໍລິຫານທຸລະກິດ', SortOrder: 1, SummaryLabel: 'ສາຍບໍລິຫານທຸລະກິດ', Major: 'Bussiness Administration' },
+  { ID: 'cat-2', Name: 'II. ຊັ້ນສູງ ວິທະຍາສາດຄອມພິວເຕີ ແລະ ຂໍ້ມູນຂ່າວສານ(ໄອທີ)', SortOrder: 2, SummaryLabel: 'ສາຍໄອທີ', Major: 'Computer Science and Information Technology' },
+  { ID: 'cat-3', Name: 'III. ຊັ້ນສູງ ພາສາອັງກິດທຸລະກິດ', SortOrder: 3, SummaryLabel: 'ສາຍພາສາອັງກິດ ທຸລະກິດ', Major: 'Business English' },
+  { ID: 'cat-4', Name: 'IV. ຊັ້ນສູງ ການເງິນ-ການບັນຊີ', SortOrder: 4, SummaryLabel: 'ສາຍການເງິນ-ການບັນຊີ', Major: 'Finanec-Accounting' }
 ];
 
 // [Order, BatchNo, CategoryId, GivenName, Surname, EnglishName, DOB, Village,
@@ -179,34 +180,6 @@ function deleteStudent(id) {
   return getAllData();
 }
 
-function upsertCategory(category) {
-  const d = loadData();
-  if (category.ID) {
-    const idx = d.categories.findIndex((c) => c.ID === category.ID);
-    if (idx === -1) throw new Error('ไม่พบหมวดหมู่');
-    d.categories[idx] = Object.assign({}, d.categories[idx], category);
-  } else {
-    category = Object.assign({}, category);
-    category.ID = 'cat-' + randomId();
-    if (!category.SortOrder) category.SortOrder = d.categories.length + 1;
-    if (!category.SummaryLabel) category.SummaryLabel = category.Name;
-    d.categories.push(category);
-  }
-  saveData(d);
-  return getAllData();
-}
-
-function deleteCategory(id) {
-  const d = loadData();
-  const inUse = d.students.some((s) => s.CategoryId === id);
-  if (inUse) throw new Error('ไม่สามารถลบหมวดหมู่นี้ได้: ยังมีนักศึกษาอยู่ในหมวดนี้');
-  const idx = d.categories.findIndex((c) => c.ID === id);
-  if (idx === -1) throw new Error('ไม่พบหมวดหมู่');
-  d.categories.splice(idx, 1);
-  saveData(d);
-  return getAllData();
-}
-
 function saveSettings(settingsObj) {
   const d = loadData();
   Object.assign(d.settings, settingsObj);
@@ -253,7 +226,6 @@ function getReportData() {
 
 const HANDLERS = {
   getAllData, upsertStudent, deleteStudent,
-  upsertCategory, deleteCategory,
   saveSettings, uploadPhoto, getReportData
 };
 

@@ -192,7 +192,6 @@
 
   <div class="tabs no-print">
     <button class="tab-btn" data-tab="list">ລາຍຊື່ນັກສຶກສາ</button>
-    <button class="tab-btn" data-tab="categories">ໝວດໝູ່ / ສາຂາວິຊາ</button>
     <button class="tab-btn" data-tab="settings">ຕັ້ງຄ່າຫົວບົດລາຍງານ</button>
     <button class="tab-btn" data-tab="report">ພິມ / ອອກລາຍງານ</button>
   </div>
@@ -211,35 +210,13 @@
           <thead>
             <tr>
               <th>ລ/ດ</th><th>ຮູບ</th><th>ຊື່</th><th>ນາມສະກຸນ</th><th>ຊື່ (ພາສາອັງກິດ)</th>
-              <th>ວັນເດືອນປີເກີດ</th><th>ບ້ານ</th><th>ໝວດໝູ່ / ສາຂາວິຊາ</th><th>ຈັດການ</th>
+              <th>ວັນເດືອນປີເກີດ</th><th>ບ້ານ</th><th>ສາຂາວິຊາ</th><th>ຈັດການ</th>
             </tr>
           </thead>
           <tbody id="studentTableBody"></tbody>
         </table>
       </div>
       <div id="listEmptyState" class="empty-state hidden">ຍັງບໍ່ມີຂໍ້ມູນນັກສຶກສາ — ກົດ "ເພີ່ມນັກສຶກສາ" ເພື່ອເລີ່ມຕົ້ນ</div>
-    </div>
-
-    <!-- ================= CATEGORIES TAB ================= -->
-    <div id="tab-categories" class="tab-panel hidden">
-      <div class="card">
-        <h2 style="margin-top:0">ເພີ່ມໝວດໝູ່ / ສາຂາວິຊາໃໝ່</h2>
-        <div class="grid-2">
-          <div class="field">
-            <label>ຊື່ໝວດໝູ່ (ສະແດງເປັນຫົວຂໍ້ໃນລາຍງານ)</label>
-            <input id="newCategoryName" type="text" placeholder="ຕົວຢ່າງ: V. ຊັ້ນສູງ ກົດໝາຍ">
-          </div>
-          <div class="field">
-            <label>ປ້າຍຊື່ໃນແຖວສະຫຼຸບ (ສັ້ນກວ່າ)</label>
-            <input id="newCategorySummaryLabel" type="text" placeholder="ຕົວຢ່າງ: ສາຍກົດໝາຍ">
-          </div>
-        </div>
-        <button id="btnAddCategory">+ ເພີ່ມ</button>
-      </div>
-      <table>
-        <thead><tr><th style="width:60px">ລຳດັບ</th><th>ຊື່ໝວດໝູ່</th><th>ປ້າຍຊື່ໃນແຖວສະຫຼຸບ</th><th style="width:120px">ຈັດການ</th></tr></thead>
-        <tbody id="categoryTableBody"></tbody>
-      </table>
     </div>
 
     <!-- ================= SETTINGS TAB ================= -->
@@ -286,7 +263,7 @@
         </div>
         <div class="grid-3">
           <div class="field">
-            <label>ໝວດໝູ່ / ສາຂາວິຊາ</label>
+            <label>ສາຂາວິຊາ</label>
             <select id="f_CategoryId"></select>
           </div>
           <div class="field">
@@ -328,10 +305,6 @@
             <label>ແຂວງ</label>
             <input type="text" id="f_Province">
           </div>
-        </div>
-        <div class="field">
-          <label>ລະຫັດວິຊາທີ່ຮຽນ (ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</label>
-          <select id="f_Major" class="eng" style="width:100%"></select>
         </div>
         <div class="grid-3">
           <div class="field">
@@ -390,7 +363,6 @@
   document.addEventListener('DOMContentLoaded', function () {
     bindTabs();
     bindStudentModal();
-    bindCategoryUI();
     bindSettingsUI();
     bindReportUI();
     loadAll();
@@ -416,7 +388,6 @@
       STATE.settings = data.settings || {};
       renderCategoryOptions();
       renderStudentTable();
-      renderCategoryTable();
       renderSettingsForm();
       updateBadge();
     }).withFailureHandler(showError).getAllData();
@@ -426,9 +397,14 @@
     document.getElementById('studentCountBadge').textContent = STATE.students.length + ' ຄົນ';
   }
 
-  function categoryName(id) {
+  function categoryShortLabelById(id) {
     var c = STATE.categories.find(function (c) { return c.ID === id; });
-    return c ? c.Name : '(ບໍ່ລະບຸ)';
+    return c ? categoryShortLabel(c) : '(ບໍ່ລະບຸ)';
+  }
+
+  // ຕັດເລກໂຣມັນ+"ຊັ້ນສູງ" ອອກ ໃຫ້ເຫຼືອແຕ່ຊື່ສາຂາວິຊາສັ້ນໆ ເຊັ່ນ "ບໍລິຫານທຸລະກິດ"
+  function categoryShortLabel(c) {
+    return (c.Name || '').replace(/^[IVX]+\.\s*ຊັ້ນສູງ\s*/, '');
   }
 
   /* ---------------- Student list ---------------- */
@@ -436,12 +412,16 @@
   function renderCategoryOptions() {
     var filter = document.getElementById('filterCategory');
     var modalSelect = document.getElementById('f_CategoryId');
-    filter.innerHTML = '<option value="">ທຸກໝວດໝູ່</option>';
+    filter.innerHTML = '<option value="">ທຸກສາຂາວິຊາ</option>';
     modalSelect.innerHTML = '';
-    STATE.categories.forEach(function (c) {
-      filter.appendChild(new Option(c.Name, c.ID));
-      modalSelect.appendChild(new Option(c.Name, c.ID));
-    });
+    STATE.categories
+      .slice()
+      .sort(function (a, b) { return (a.SortOrder || 0) - (b.SortOrder || 0); })
+      .forEach(function (c) {
+        var label = categoryShortLabel(c);
+        filter.appendChild(new Option(label, c.ID));
+        modalSelect.appendChild(new Option(label, c.ID));
+      });
   }
 
   function currentFilteredStudents() {
@@ -475,7 +455,7 @@
         '<td class="name-cell eng">' + escapeHtml(s.EnglishName || '') + '</td>' +
         '<td>' + escapeHtml(s.DOB || '') + '</td>' +
         '<td>' + escapeHtml(s.Village || '') + '</td>' +
-        '<td>' + escapeHtml(categoryName(s.CategoryId)) + '</td>' +
+        '<td>' + escapeHtml(categoryShortLabelById(s.CategoryId)) + '</td>' +
         '<td>' +
           '<button class="ghost" onclick="editStudent(\'' + s.ID + '\')">ແກ້ໄຂ</button> ' +
           '<button class="danger" onclick="removeStudent(\'' + s.ID + '\')">ລຶບ</button>' +
@@ -534,7 +514,6 @@
     document.getElementById('f_Village').value = s ? s.Village || '' : '';
     document.getElementById('f_District').value = s ? s.District || '' : '';
     document.getElementById('f_Province').value = s ? s.Province || '' : '';
-    populateMajorOptions(s ? s.Major || '' : '');
     document.getElementById('f_CertNoLao').value = s ? s.CertNoLao || '' : '';
     document.getElementById('f_CertNoEnglish').value = s ? s.CertNoEnglish || '' : '';
     document.getElementById('f_DeptRegNo').value = s ? s.DeptRegNo || '' : '';
@@ -549,24 +528,6 @@
     document.getElementById('studentModalBackdrop').classList.remove('hidden');
   }
 
-  function distinctMajors() {
-    var seen = {};
-    var list = [];
-    STATE.students.forEach(function (s) {
-      if (s.Major && !seen[s.Major]) { seen[s.Major] = true; list.push(s.Major); }
-    });
-    return list.sort();
-  }
-
-  function populateMajorOptions(currentMajor) {
-    var select = document.getElementById('f_Major');
-    var majors = distinctMajors();
-    if (currentMajor && majors.indexOf(currentMajor) === -1) majors.unshift(currentMajor);
-    select.innerHTML = '';
-    majors.forEach(function (m) { select.appendChild(new Option(m, m)); });
-    select.value = currentMajor || (majors[0] || '');
-  }
-
   function closeStudentModal() {
     document.getElementById('studentModalBackdrop').classList.add('hidden');
   }
@@ -575,11 +536,14 @@
     var btn = document.getElementById('btnSaveStudent');
     btn.disabled = true;
 
+    var categoryId = document.getElementById('f_CategoryId').value;
+    var category = STATE.categories.find(function (c) { return c.ID === categoryId; });
+
     var student = {
       ID: document.getElementById('f_ID').value || undefined,
       Order: document.getElementById('f_Order').value || undefined,
       BatchNo: document.getElementById('f_BatchNo').value,
-      CategoryId: document.getElementById('f_CategoryId').value,
+      CategoryId: categoryId,
       GivenName: document.getElementById('f_GivenName').value,
       Surname: document.getElementById('f_Surname').value,
       EnglishName: document.getElementById('f_EnglishName').value,
@@ -588,7 +552,7 @@
       Village: document.getElementById('f_Village').value,
       District: document.getElementById('f_District').value,
       Province: document.getElementById('f_Province').value,
-      Major: document.getElementById('f_Major').value,
+      Major: category ? category.Major : '',
       CertNoLao: document.getElementById('f_CertNoLao').value,
       CertNoEnglish: document.getElementById('f_CertNoEnglish').value,
       DeptRegNo: document.getElementById('f_DeptRegNo').value,
@@ -631,65 +595,6 @@
       updateBadge();
       showToast('ລຶບຂໍ້ມູນສຳເລັດ');
     }).withFailureHandler(showError).deleteStudent(id);
-  }
-
-  /* ---------------- Categories ---------------- */
-
-  function bindCategoryUI() {
-    document.getElementById('btnAddCategory').addEventListener('click', function () {
-      var nameInput = document.getElementById('newCategoryName');
-      var labelInput = document.getElementById('newCategorySummaryLabel');
-      var name = nameInput.value.trim();
-      if (!name) return;
-      google.script.run.withSuccessHandler(function (data) {
-        STATE.categories = data.categories;
-        renderCategoryOptions();
-        renderCategoryTable();
-        nameInput.value = '';
-        labelInput.value = '';
-        showToast('ເພີ່ມໝວດໝູ່ສຳເລັດ');
-      }).withFailureHandler(showError).upsertCategory({ Name: name, SummaryLabel: labelInput.value.trim() || name });
-    });
-  }
-
-  function renderCategoryTable() {
-    var tbody = document.getElementById('categoryTableBody');
-    tbody.innerHTML = '';
-    STATE.categories
-      .slice()
-      .sort(function (a, b) { return (a.SortOrder || 0) - (b.SortOrder || 0); })
-      .forEach(function (c) {
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td>' + c.SortOrder + '</td>' +
-          '<td class="name-cell"><input type="text" value="' + escapeAttr(c.Name) + '" onchange="renameCategory(\'' + c.ID + '\', this.value, undefined)"></td>' +
-          '<td class="name-cell"><input type="text" value="' + escapeAttr(c.SummaryLabel || '') + '" onchange="renameCategory(\'' + c.ID + '\', undefined, this.value)"></td>' +
-          '<td><button class="danger" onclick="removeCategory(\'' + c.ID + '\')">ລຶບ</button></td>';
-        tbody.appendChild(tr);
-      });
-  }
-
-  function renameCategory(id, name, summaryLabel) {
-    var c = STATE.categories.find(function (x) { return x.ID === id; });
-    var payload = { ID: id, SortOrder: c ? c.SortOrder : 0 };
-    if (name !== undefined) payload.Name = name;
-    if (summaryLabel !== undefined) payload.SummaryLabel = summaryLabel;
-    google.script.run.withSuccessHandler(function (data) {
-      STATE.categories = data.categories;
-      renderCategoryOptions();
-      renderStudentTable();
-      showToast('ບັນທຶກຂໍ້ມູນໝວດໝູ່ສຳເລັດ');
-    }).withFailureHandler(showError).upsertCategory(payload);
-  }
-
-  function removeCategory(id) {
-    if (!confirm('ຢືນຢັນການລຶບໝວດໝູ່ນີ້?')) return;
-    google.script.run.withSuccessHandler(function (data) {
-      STATE.categories = data.categories;
-      renderCategoryOptions();
-      renderCategoryTable();
-      showToast('ລຶບໝວດໝູ່ສຳເລັດ');
-    }).withFailureHandler(showError).deleteCategory(id);
   }
 
   /* ---------------- Settings ---------------- */

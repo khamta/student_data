@@ -24,7 +24,7 @@ var STUDENT_HEADERS = [
   'CreatedAt', 'UpdatedAt'
 ];
 
-var CATEGORY_HEADERS = ['ID', 'Name', 'SortOrder', 'SummaryLabel'];
+var CATEGORY_HEADERS = ['ID', 'Name', 'SortOrder', 'SummaryLabel', 'Major'];
 var SETTINGS_HEADERS = ['Key', 'Value'];
 
 var DEFAULT_SETTINGS = [
@@ -44,11 +44,12 @@ var DEFAULT_SETTINGS = [
   ['ApprovalRightTitle', 'ຜູ້ອໍານວຍການວິທະຍາໄລ ຄໍາສີສຸກ ບໍລິຫານທຸລະກິດ']
 ];
 
+// ໝວດໝູ່ / ສາຂາວິຊາ ມີໄດ້ແຄ່ 4 ອັນນີ້ຄົງທີ່ (ບໍ່ມີໜ້າຈັດການແຍກຕ່າງຫາກອີກຕໍ່ໄປ)
 var DEFAULT_CATEGORIES = [
-  ['cat-1', 'I. ຊັ້ນສູງ ບໍລິຫານທຸລະກິດ', 1, 'ສາຍບໍລິຫານທຸລະກິດ'],
-  ['cat-2', 'II. ຊັ້ນສູງ ວິທະຍາສາດຄອມພິວເຕີ ແລະ ຂໍ້ມູນຂ່າວສານ(ໄອທີ)', 2, 'ສາຍໄອທີ'],
-  ['cat-3', 'III. ຊັ້ນສູງ ພາສາອັງກິດທຸລະກິດ', 3, 'ສາຍພາສາອັງກິດ ທຸລະກິດ'],
-  ['cat-4', 'IV. ຊັ້ນສູງ ການເງິນ-ການບັນຊີ', 4, 'ສາຍການເງິນ-ການບັນຊີ']
+  ['cat-1', 'I. ຊັ້ນສູງ ບໍລິຫານທຸລະກິດ', 1, 'ສາຍບໍລິຫານທຸລະກິດ', 'Bussiness Administration'],
+  ['cat-2', 'II. ຊັ້ນສູງ ວິທະຍາສາດຄອມພິວເຕີ ແລະ ຂໍ້ມູນຂ່າວສານ(ໄອທີ)', 2, 'ສາຍໄອທີ', 'Computer Science and Information Technology'],
+  ['cat-3', 'III. ຊັ້ນສູງ ພາສາອັງກິດທຸລະກິດ', 3, 'ສາຍພາສາອັງກິດ ທຸລະກິດ', 'Business English'],
+  ['cat-4', 'IV. ຊັ້ນສູງ ການເງິນ-ການບັນຊີ', 4, 'ສາຍການເງິນ-ການບັນຊີ', 'Finanec-Accounting']
 ];
 
 // ຂໍ້ມູນນັກສຶກສາຕົວຈິງ, ຖອດຈາກ PDF ຕົ້ນສະບັບ (2024-2025) ເພື່ອໃຫ້ຊີດເລີ່ມຕົ້ນ
@@ -305,45 +306,6 @@ function deleteStudent(id) {
   var row = findRowById_(s.studentsSheet, STUDENT_HEADERS, id);
   if (row === -1) throw new Error('ไม่พบข้อมูลนักศึกษา');
   s.studentsSheet.deleteRow(row);
-  return getAllData();
-}
-
-/* ---- Categories ---- */
-
-function upsertCategory(category) {
-  var s = ensureSheets_();
-  var sheet = s.categoriesSheet;
-  if (category.ID) {
-    var row = findRowById_(sheet, CATEGORY_HEADERS, category.ID);
-    if (row === -1) throw new Error('ไม่พบหมวดหมู่');
-    var existingRow = sheet.getRange(row, 1, 1, CATEGORY_HEADERS.length).getValues()[0];
-    var merged = CATEGORY_HEADERS.map(function (h, idx) {
-      return category[h] !== undefined ? category[h] : existingRow[idx];
-    });
-    sheet.getRange(row, 1, 1, CATEGORY_HEADERS.length).setValues([merged]);
-  } else {
-    category.ID = 'cat-' + Utilities.getUuid();
-    if (!category.SortOrder) {
-      var existing = sheetToObjects_(sheet, CATEGORY_HEADERS);
-      category.SortOrder = existing.length + 1;
-    }
-    if (!category.SummaryLabel) category.SummaryLabel = category.Name;
-    var newRow = CATEGORY_HEADERS.map(function (h) { return category[h] !== undefined ? category[h] : ''; });
-    sheet.appendRow(newRow);
-  }
-  return getAllData();
-}
-
-function deleteCategory(id) {
-  var s = ensureSheets_();
-  var inUse = sheetToObjects_(s.studentsSheet, STUDENT_HEADERS)
-    .some(function (st) { return st.CategoryId === id; });
-  if (inUse) {
-    throw new Error('ไม่สามารถลบหมวดหมู่นี้ได้: ยังมีนักศึกษาอยู่ในหมวดนี้');
-  }
-  var row = findRowById_(s.categoriesSheet, CATEGORY_HEADERS, id);
-  if (row === -1) throw new Error('ไม่พบหมวดหมู่');
-  s.categoriesSheet.deleteRow(row);
   return getAllData();
 }
 
