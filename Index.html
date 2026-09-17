@@ -154,6 +154,14 @@
       background: #fff;
     }
 
+    /* ຫໍ່ຕາຕະລາງໄວ້ໃນນີ້ ເພື່ອໃຫ້ scrollbar ຢູ່ສະເພາະໃນຕາຕະລາງເທົ່ານັ້ນ
+       ບໍ່ໃຫ້ໜ້າເວັບທັງໝົດເລື່ອນຊ້າຍ-ຂວາຕາມ (ໂດຍສະເພາະຕາຕະລາງລາຍງານທີ່ກວ້າງຫຼາຍ) */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 8px;
+    }
+
     th,
     td {
       border: 1px solid var(--border);
@@ -560,6 +568,8 @@
 
     .summary-block {
       margin-top: 18px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .summary-row {
@@ -567,6 +577,8 @@
       grid-template-columns: 260px 60px 90px 60px 40px;
       gap: 4px;
       font-weight: 700;
+      width: max-content;
+      min-width: 100%;
     }
 
     .summary-row div:nth-child(2),
@@ -615,6 +627,11 @@
 
       table {
         font-size: 10px;
+      }
+
+      .table-scroll,
+      .summary-block {
+        overflow: visible;
       }
     }
 
@@ -771,7 +788,7 @@
         </select>
         <button id="btnAddStudent">+ ເພີ່ມນັກສຶກສາ</button>
       </div>
-      <div style="overflow-x:auto">
+      <div class="table-scroll">
         <table id="studentTable">
           <thead>
             <tr>
@@ -1558,7 +1575,7 @@
       html += '<div class="report-title">' + escapeHtml(st.ReportTitle || '') + '</div>';
       if (st.ReportSubtitle) html += '<div class="report-subtitle">' + escapeHtml(st.ReportSubtitle) + '</div>';
 
-      html += '<table><thead>';
+      html += '<div class="table-scroll"><table><thead>';
       html += '<tr>' +
         '<th rowspan="2">ລ/ດ</th>' +
         '<th colspan="2">ເລກທະບຽນນັກສຶກສາ</th>' +
@@ -1611,7 +1628,7 @@
           });
       });
 
-      html += '</tbody></table>';
+      html += '</tbody></table></div>';
 
       html += '<div class="summary-block">';
       report.summary.forEach(function (s) {
