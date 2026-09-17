@@ -107,7 +107,7 @@ var DEFAULT_STUDENTS = [
 function doGet(e) {
   ensureSheets_();
   return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('ລະບົບຈັດການທຳນຽບນັກສຶກສາ')
+    .setTitle('ລະບົບຈັດການຂໍ້ມູນນັກສຶກສາ')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
