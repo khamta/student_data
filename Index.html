@@ -3,6 +3,9 @@
 <head>
   <base target="_top">
   <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&display=swap" rel="stylesheet">
   <style>
   :root {
     --primary: #7a1f2b;
@@ -10,13 +13,18 @@
     --bg: #f4f2ef;
     --border: #d8d2c9;
     --text: #2a2320;
+    --font-lao: 'Phetsarath', 'Phetsarath OT', 'Saysettha OT', 'Noto Sans Lao', sans-serif;
+    --font-eng: 'Times New Roman', Times, serif;
   }
   * { box-sizing: border-box; }
   body {
-    font-family: 'Noto Sans Lao', 'Phetsarath OT', 'Saysettha OT', sans-serif;
+    font-family: var(--font-lao), var(--font-eng);
     background: var(--bg);
     color: var(--text);
     margin: 0;
+  }
+  .eng {
+    font-family: var(--font-eng), var(--font-lao);
   }
   .topbar {
     background: var(--primary);
@@ -154,6 +162,11 @@
   .sign-row { display: flex; justify-content: space-between; margin-top: 10px; }
   .sign-row div { text-align: center; max-width: 320px; }
 
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
   @media print {
     .no-print { display: none !important; }
     .page { padding: 0; max-width: none; }
@@ -288,7 +301,7 @@
         <div class="grid-3">
           <div class="field">
             <label>ຊື່ແລະນາມສະກຸນ (ພາສາອັງກິດ)</label>
-            <input type="text" id="f_EnglishName" placeholder="Mr. Sisamoud PHENGTHALANGSY">
+            <input type="text" id="f_EnglishName" class="eng" placeholder="Mr. Sisamoud PHENGTHALANGSY">
           </div>
           <div class="field">
             <label>ວັນເດືອນປີເກີດ</label>
@@ -318,7 +331,7 @@
         </div>
         <div class="field">
           <label>ລະຫັດວິຊາທີ່ຮຽນ (ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</label>
-          <input type="text" id="f_Major" placeholder="Bussiness Administration" style="width:100%">
+          <input type="text" id="f_Major" class="eng" placeholder="Bussiness Administration" style="width:100%">
         </div>
         <div class="grid-3">
           <div class="field">
@@ -327,7 +340,7 @@
           </div>
           <div class="field">
             <label>ທະບຽນທາງວິທະຍາໄລ (ພາສາອັງກິດ)</label>
-            <input type="text" id="f_CertNoEnglish" placeholder="001/KBAC/KM.25">
+            <input type="text" id="f_CertNoEnglish" class="eng" placeholder="001/KBAC/KM.25">
           </div>
           <div class="field">
             <label>ທະບຽນກົມການສຶກສາຊັ້ນສູງ</label>
@@ -459,7 +472,7 @@
         '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
         '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
         '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
-        '<td class="name-cell">' + escapeHtml(s.EnglishName || '') + '</td>' +
+        '<td class="name-cell eng">' + escapeHtml(s.EnglishName || '') + '</td>' +
         '<td>' + escapeHtml(s.DOB || '') + '</td>' +
         '<td>' + escapeHtml(s.Village || '') + '</td>' +
         '<td>' + escapeHtml(categoryName(s.CategoryId)) + '</td>' +
@@ -754,14 +767,14 @@
             '<td>' + (s.PhotoUrl ? '<img class="thumb" src="' + escapeAttr(s.PhotoUrl) + '">' : '') + '</td>' +
             '<td class="name-cell">' + escapeHtml(s.GivenName || '') + '</td>' +
             '<td class="name-cell">' + escapeHtml(s.Surname || '') + '</td>' +
-            '<td class="name-cell">' + escapeHtml(s.EnglishName || '') + '</td>' +
+            '<td class="name-cell eng">' + escapeHtml(s.EnglishName || '') + '</td>' +
             '<td>' + escapeHtml(s.DOB || '') + '</td>' +
             '<td>' + escapeHtml(s.Village || '') + '</td>' +
             '<td>' + escapeHtml(s.District || '') + '</td>' +
             '<td>' + escapeHtml(s.Province || '') + '</td>' +
-            '<td>' + escapeHtml(s.Major || '') + '</td>' +
+            '<td class="eng">' + escapeHtml(s.Major || '') + '</td>' +
             '<td>' + escapeHtml(s.CertNoLao || '') + '</td>' +
-            '<td>' + escapeHtml(s.CertNoEnglish || '') + '</td>' +
+            '<td class="eng">' + escapeHtml(s.CertNoEnglish || '') + '</td>' +
             '<td>' + escapeHtml(s.DeptRegNo || '') + '</td>' +
             '<td>' + escapeHtml(s.DiplomaM6 || '') + '</td>' +
             '<td>' + escapeHtml(s.DiplomaM7 || '') + '</td>' +
