@@ -104,7 +104,7 @@ function buildDefaultStudents() {
       DOB: row[6], Village: row[7], District: row[8], Province: row[9],
       Major: row[10], CertNoLao: row[11], CertNoEnglish: row[12], DeptRegNo: row[13],
       DiplomaM6: row[14], DiplomaM7: row[15], Gender: row[16],
-      PhotoUrl: '', CreatedAt: now, UpdatedAt: now
+      PhotoUrl: '', DiplomaPhotoUrl: '', CreatedAt: now, UpdatedAt: now
     };
   });
 }

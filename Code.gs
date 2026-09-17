@@ -20,7 +20,7 @@ var STUDENT_HEADERS = [
   'Major',
   'CertNoLao', 'CertNoEnglish', 'DeptRegNo',
   'DiplomaM6', 'DiplomaM7',
-  'Gender', 'PhotoUrl',
+  'Gender', 'PhotoUrl', 'DiplomaPhotoUrl',
   'CreatedAt', 'UpdatedAt'
 ];
 

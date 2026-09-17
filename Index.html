@@ -108,12 +108,15 @@
   }
   th { background: #efe7e2; }
   td.name-cell { text-align: left; }
+  .row-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .row-actions button { padding: 6px 10px; font-size: 12px; }
   .thumb {
     width: 46px; height: 58px;
     object-fit: cover;
     border: 1px solid var(--border);
     background: #eee;
   }
+  .thumb-wide { width: 140px; height: 90px; border-radius: 6px; }
   .card {
     background: #fff;
     border: 1px solid var(--border);
@@ -182,6 +185,18 @@
   .modal-sm { max-width: 420px; }
   .modal-sm .modal-body { padding: 20px 24px; }
   .confirm-message { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text); }
+
+  .detail-photos { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+  .detail-photo-box { text-align: center; }
+  .detail-photo-box img, .detail-photo-box .no-photo {
+    border-radius: 8px; border: 1px solid var(--border); object-fit: cover; background: #f4f2ef;
+  }
+  .detail-photo-box .no-photo { display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; }
+  .detail-photo-box span { display: block; font-size: 12px; color: #6b6259; margin-top: 6px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+  .detail-row { padding: 9px 0; border-bottom: 1px solid #f1ece7; display: flex; justify-content: space-between; gap: 12px; }
+  .detail-row .k { color: #6b6259; font-size: 13px; }
+  .detail-row .v { font-weight: 600; font-size: 13px; text-align: right; }
 
   .badge {
     display: inline-block; padding: 2px 8px; border-radius: 999px;
@@ -395,6 +410,12 @@
                 <label>ໃບປະກາດມ.ປາຍ — ມ.7</label>
                 <input type="text" id="f_DiplomaM7" autocomplete="off" placeholder="ມ7">
               </div>
+              <div class="field">
+                <label>ຮູບໃບປະກາດ (ຖ້າມີ)</label>
+                <input type="file" id="f_DiplomaPhotoFile" accept="image/*">
+                <img id="f_DiplomaPhotoPreview" class="thumb thumb-wide" style="margin-top:8px;display:none">
+                <input type="hidden" id="f_DiplomaPhotoUrl">
+              </div>
             </div>
           </div>
         </form>
@@ -419,6 +440,21 @@
       <div class="modal-actions">
         <button class="secondary" id="btnConfirmCancel">ຍົກເລີກ</button>
         <button class="danger" id="btnConfirmOk">ລຶບ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STUDENT DETAIL MODAL ================= -->
+  <div id="detailModalBackdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>ລາຍລະອຽດນັກສຶກສາ</h2>
+        <button type="button" class="modal-close" id="btnDetailClose" aria-label="ປິດ">✕</button>
+      </div>
+      <div class="modal-body" id="detailModalBody"></div>
+      <div class="modal-actions">
+        <button class="secondary" id="btnDetailCloseFooter">ປິດ</button>
+        <button id="btnDetailEdit">ແກ້ໄຂ</button>
       </div>
     </div>
   </div>
@@ -449,6 +485,7 @@
     bindTabs();
     bindStudentModal();
     bindConfirmModal();
+    bindDetailModal();
     bindSettingsUI();
     bindReportUI();
     loadAll();
@@ -577,10 +614,11 @@
         '<td>' + escapeHtml(s.DOB || '') + '</td>' +
         '<td>' + escapeHtml(s.Village || '') + '</td>' +
         '<td>' + escapeHtml(categoryShortLabelById(s.CategoryId)) + '</td>' +
-        '<td>' +
-          '<button class="ghost" onclick="editStudent(\'' + s.ID + '\')">ແກ້ໄຂ</button> ' +
+        '<td><div class="row-actions">' +
+          '<button class="secondary" onclick="viewStudentDetails(\'' + s.ID + '\')">ລາຍລະອຽດ</button>' +
+          '<button class="ghost" onclick="editStudent(\'' + s.ID + '\')">ແກ້ໄຂ</button>' +
           '<button class="danger" onclick="removeStudent(\'' + s.ID + '\')">ລຶບ</button>' +
-        '</td>';
+        '</div></td>';
       tbody.appendChild(tr);
     });
   }
@@ -596,6 +634,8 @@
 
   var pendingPhotoBase64 = null;
   var pendingPhotoMime = null;
+  var pendingDiplomaPhotoBase64 = null;
+  var pendingDiplomaPhotoMime = null;
   var certAutoFlags = { lao: true, eng: true };
 
   function pad3(n) {
@@ -638,25 +678,46 @@
     document.getElementById('f_CertNoLao').addEventListener('input', function () { certAutoFlags.lao = false; });
     document.getElementById('f_CertNoEnglish').addEventListener('input', function () { certAutoFlags.eng = false; });
 
-    document.getElementById('f_PhotoFile').addEventListener('change', function (e) {
+    bindPhotoInput('f_PhotoFile', 'f_PhotoPreview', function (base64, mime) {
+      pendingPhotoBase64 = base64;
+      pendingPhotoMime = mime;
+    });
+    bindPhotoInput('f_DiplomaPhotoFile', 'f_DiplomaPhotoPreview', function (base64, mime) {
+      pendingDiplomaPhotoBase64 = base64;
+      pendingDiplomaPhotoMime = mime;
+    });
+  }
+
+  function bindPhotoInput(fileInputId, previewId, onLoaded) {
+    document.getElementById(fileInputId).addEventListener('change', function (e) {
       var file = e.target.files[0];
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function () {
         var result = reader.result; // data:image/png;base64,xxxx
         var parts = result.split(',');
-        pendingPhotoMime = file.type;
-        pendingPhotoBase64 = parts[1];
-        document.getElementById('f_PhotoPreview').src = result;
-        document.getElementById('f_PhotoPreview').style.display = 'block';
+        onLoaded(parts[1], file.type);
+        var preview = document.getElementById(previewId);
+        preview.src = result;
+        preview.style.display = 'block';
       };
       reader.readAsDataURL(file);
     });
   }
 
+  function populatePhotoField(url, fileInputId, previewId, urlFieldId) {
+    document.getElementById(urlFieldId).value = url || '';
+    document.getElementById(fileInputId).value = '';
+    var preview = document.getElementById(previewId);
+    if (url) { preview.src = url; preview.style.display = 'block'; }
+    else { preview.style.display = 'none'; }
+  }
+
   function openStudentModal(id) {
     pendingPhotoBase64 = null;
     pendingPhotoMime = null;
+    pendingDiplomaPhotoBase64 = null;
+    pendingDiplomaPhotoMime = null;
     var s = id ? STATE.students.find(function (x) { return x.ID === id; }) : null;
     document.getElementById('studentModalTitle').textContent = s ? 'ແກ້ໄຂຂໍ້ມູນນັກສຶກສາ' : 'ເພີ່ມນັກສຶກສາ';
     document.getElementById('f_ID').value = s ? s.ID : '';
@@ -678,11 +739,8 @@
     document.getElementById('f_DeptRegNo').value = s ? s.DeptRegNo || '' : '';
     document.getElementById('f_DiplomaM6').value = s ? s.DiplomaM6 || '' : '';
     document.getElementById('f_DiplomaM7').value = s ? s.DiplomaM7 || '' : '';
-    document.getElementById('f_PhotoUrl').value = s ? s.PhotoUrl || '' : '';
-    document.getElementById('f_PhotoFile').value = '';
-    var preview = document.getElementById('f_PhotoPreview');
-    if (s && s.PhotoUrl) { preview.src = s.PhotoUrl; preview.style.display = 'block'; }
-    else { preview.style.display = 'none'; }
+    populatePhotoField(s ? s.PhotoUrl : '', 'f_PhotoFile', 'f_PhotoPreview', 'f_PhotoUrl');
+    populatePhotoField(s ? s.DiplomaPhotoUrl : '', 'f_DiplomaPhotoFile', 'f_DiplomaPhotoPreview', 'f_DiplomaPhotoUrl');
 
     document.getElementById('studentModalBackdrop').classList.remove('hidden');
   }
@@ -717,8 +775,11 @@
       DeptRegNo: document.getElementById('f_DeptRegNo').value,
       DiplomaM6: document.getElementById('f_DiplomaM6').value,
       DiplomaM7: document.getElementById('f_DiplomaM7').value,
-      PhotoUrl: document.getElementById('f_PhotoUrl').value
+      PhotoUrl: document.getElementById('f_PhotoUrl').value,
+      DiplomaPhotoUrl: document.getElementById('f_DiplomaPhotoUrl').value
     };
+
+    function fail(err) { showError(err); btn.disabled = false; }
 
     function finishSave() {
       google.script.run.withSuccessHandler(function (data) {
@@ -729,18 +790,20 @@
         closeStudentModal();
         showToast('ບັນທຶກຂໍ້ມູນສຳເລັດ');
         btn.disabled = false;
-      }).withFailureHandler(function (err) { showError(err); btn.disabled = false; }).upsertStudent(student);
+      }).withFailureHandler(fail).upsertStudent(student);
     }
 
-    if (pendingPhotoBase64) {
+    function uploadIfPending(base64, mime, fileNamePrefix, field, next) {
+      if (!base64) { next(); return; }
       google.script.run.withSuccessHandler(function (url) {
-        student.PhotoUrl = url;
-        finishSave();
-      }).withFailureHandler(function (err) { showError(err); btn.disabled = false; })
-        .uploadPhoto(pendingPhotoBase64, pendingPhotoMime, 'student-' + Date.now());
-    } else {
-      finishSave();
+        student[field] = url;
+        next();
+      }).withFailureHandler(fail).uploadPhoto(base64, mime, fileNamePrefix + '-' + Date.now());
     }
+
+    uploadIfPending(pendingPhotoBase64, pendingPhotoMime, 'student', 'PhotoUrl', function () {
+      uploadIfPending(pendingDiplomaPhotoBase64, pendingDiplomaPhotoMime, 'diploma', 'DiplomaPhotoUrl', finishSave);
+    });
   }
 
   function editStudent(id) { openStudentModal(id); }
@@ -755,6 +818,71 @@
         showToast('ລຶບຂໍ້ມູນສຳເລັດ');
       }).withFailureHandler(showError).deleteStudent(id);
     }, { title: 'ຢືນຢັນການລຶບ' });
+  }
+
+  /* ---------------- Student detail view ---------------- */
+
+  var currentDetailStudentId = null;
+
+  function bindDetailModal() {
+    document.getElementById('btnDetailClose').addEventListener('click', closeDetailModal);
+    document.getElementById('btnDetailCloseFooter').addEventListener('click', closeDetailModal);
+    document.getElementById('btnDetailEdit').addEventListener('click', function () {
+      var id = currentDetailStudentId;
+      closeDetailModal();
+      openStudentModal(id);
+    });
+  }
+
+  function closeDetailModal() {
+    document.getElementById('detailModalBackdrop').classList.add('hidden');
+    currentDetailStudentId = null;
+  }
+
+  function detailRow(label, value) {
+    return '<div class="detail-row"><div class="k">' + escapeHtml(label) + '</div><div class="v">' + escapeHtml(value || '-') + '</div></div>';
+  }
+
+  function viewStudentDetails(id) {
+    var s = STATE.students.find(function (x) { return x.ID === id; });
+    if (!s) return;
+    currentDetailStudentId = id;
+
+    var html = '<div class="detail-photos">';
+    html += '<div class="detail-photo-box">' +
+      (s.PhotoUrl
+        ? '<img src="' + escapeAttr(s.PhotoUrl) + '" style="width:110px;height:140px">'
+        : '<div class="no-photo" style="width:110px;height:140px">ບໍ່ມີຮູບ</div>') +
+      '<span>ຮູບພາບ</span></div>';
+    html += '<div class="detail-photo-box">' +
+      (s.DiplomaPhotoUrl
+        ? '<img src="' + escapeAttr(s.DiplomaPhotoUrl) + '" style="width:220px;height:140px">'
+        : '<div class="no-photo" style="width:220px;height:140px">ບໍ່ມີຮູບໃບປະກາດ</div>') +
+      '<span>ຮູບໃບປະກາດ</span></div>';
+    html += '</div>';
+
+    html += '<div class="detail-grid">';
+    html += detailRow('ເລກລຳດັບ (ລ/ດ)', s.Order);
+    html += detailRow('ຮຸ່ນ', s.BatchNo);
+    html += detailRow('ສາຂາວິຊາ', categoryShortLabelById(s.CategoryId));
+    html += detailRow('ຄຳນຳໜ້າ+ຊື່', s.GivenName);
+    html += detailRow('ນາມສະກຸນ', s.Surname);
+    html += detailRow('ຊື່ (ພາສາອັງກິດ)', s.EnglishName);
+    html += detailRow('ວັນເດືອນປີເກີດ', s.DOB);
+    html += detailRow('ເພດ', s.Gender === 'F' ? 'ຍິງ' : 'ຊາຍ');
+    html += detailRow('ບ້ານ', s.Village);
+    html += detailRow('ເມືອງ/ນະຄອນ', s.District);
+    html += detailRow('ແຂວງ', s.Province);
+    html += detailRow('ວິຊາສະເພາະ', s.Major);
+    html += detailRow('ທະບຽນທາງວິທະຍາໄລ (ລາວ)', s.CertNoLao);
+    html += detailRow('ທະບຽນທາງວິທະຍາໄລ (ອັງກິດ)', s.CertNoEnglish);
+    html += detailRow('ທະບຽນກົມການສຶກສາຊັ້ນສູງ', s.DeptRegNo);
+    html += detailRow('ໃບປະກາດ ມ.6', s.DiplomaM6);
+    html += detailRow('ໃບປະກາດ ມ.7', s.DiplomaM7);
+    html += '</div>';
+
+    document.getElementById('detailModalBody').innerHTML = html;
+    document.getElementById('detailModalBackdrop').classList.remove('hidden');
   }
 
   /* ---------------- Settings ---------------- */
