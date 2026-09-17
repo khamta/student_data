@@ -154,7 +154,7 @@
   .report-header-grid { display: grid; grid-template-columns: 1fr 1fr; }
   .report-title { font-weight: 700; text-decoration: underline; margin: 16px 0 4px; text-align: center; }
   .report-subtitle { text-decoration: underline; margin-bottom: 12px; text-align: center; }
-  .category-heading { font-weight: 700; text-decoration: underline; margin: 14px 0 4px; text-align: left; }
+  .category-heading { font-weight: 700; text-decoration: underline; text-align: left !important; background: #fff; }
   .summary-block { margin-top: 18px; }
   .summary-row { display: grid; grid-template-columns: 260px 60px 90px 60px 40px; gap: 4px; font-weight: 700; }
   .summary-row div:nth-child(2), .summary-row div:nth-child(4) { text-align: center; }
@@ -331,7 +331,7 @@
         </div>
         <div class="field">
           <label>ລະຫັດວິຊາທີ່ຮຽນ (ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</label>
-          <input type="text" id="f_Major" class="eng" placeholder="Bussiness Administration" style="width:100%">
+          <select id="f_Major" class="eng" style="width:100%"></select>
         </div>
         <div class="grid-3">
           <div class="field">
@@ -534,7 +534,7 @@
     document.getElementById('f_Village').value = s ? s.Village || '' : '';
     document.getElementById('f_District').value = s ? s.District || '' : '';
     document.getElementById('f_Province').value = s ? s.Province || '' : '';
-    document.getElementById('f_Major').value = s ? s.Major || '' : '';
+    populateMajorOptions(s ? s.Major || '' : '');
     document.getElementById('f_CertNoLao').value = s ? s.CertNoLao || '' : '';
     document.getElementById('f_CertNoEnglish').value = s ? s.CertNoEnglish || '' : '';
     document.getElementById('f_DeptRegNo').value = s ? s.DeptRegNo || '' : '';
@@ -547,6 +547,24 @@
     else { preview.style.display = 'none'; }
 
     document.getElementById('studentModalBackdrop').classList.remove('hidden');
+  }
+
+  function distinctMajors() {
+    var seen = {};
+    var list = [];
+    STATE.students.forEach(function (s) {
+      if (s.Major && !seen[s.Major]) { seen[s.Major] = true; list.push(s.Major); }
+    });
+    return list.sort();
+  }
+
+  function populateMajorOptions(currentMajor) {
+    var select = document.getElementById('f_Major');
+    var majors = distinctMajors();
+    if (currentMajor && majors.indexOf(currentMajor) === -1) majors.unshift(currentMajor);
+    select.innerHTML = '';
+    majors.forEach(function (m) { select.appendChild(new Option(m, m)); });
+    select.value = currentMajor || (majors[0] || '');
   }
 
   function closeStudentModal() {
@@ -730,32 +748,33 @@
     html += '<div class="report-title">' + escapeHtml(st.ReportTitle || '') + '</div>';
     if (st.ReportSubtitle) html += '<div class="report-subtitle">' + escapeHtml(st.ReportSubtitle) + '</div>';
 
+    html += '<table><thead>';
+    html += '<tr>' +
+      '<th rowspan="2">ລ/ດ</th>' +
+      '<th colspan="2">ເລກທະບຽນນັກສຶກສາ</th>' +
+      '<th rowspan="2">ຮູບຖ່າຍ</th>' +
+      '<th rowspan="2">ຊື່</th>' +
+      '<th rowspan="2">ນາມສະກຸນ</th>' +
+      '<th rowspan="2">ຊື່ແລະນາມສະກຸນ<br>(ພາສາອັງກິດ)</th>' +
+      '<th rowspan="2">ວັນເດືອນປີເກີດ</th>' +
+      '<th rowspan="2">ບ້ານ</th>' +
+      '<th rowspan="2">ເມືອງ/ນະຄອນ</th>' +
+      '<th rowspan="2">ແຂວງ</th>' +
+      '<th rowspan="2">ລະຫັດວິຊາທີ່ຮຽນ<br>(ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</th>' +
+      '<th colspan="2">ທະບຽນທາງວິທະຍາໄລ</th>' +
+      '<th rowspan="2">ທະບຽນກົມການ<br>ສຶກສາຊັ້ນສູງ</th>' +
+      '<th colspan="2">ໃບປະກາດມ.ປາຍ</th>' +
+      '</tr>';
+    html += '<tr>' +
+      '<th></th><th></th>' +
+      '<th>ພາສາລາວ</th><th>ພາສາອັງກິດ</th>' +
+      '<th>ມ.6</th><th>ມ.7</th>' +
+      '</tr>';
+    html += '</thead><tbody>';
+
     report.groups.forEach(function (g) {
       if (g.students.length === 0 && report.groups.length > 1) return;
-      html += '<div class="category-heading">' + escapeHtml(g.category.Name) + '</div>';
-      html += '<table><thead>';
-      html += '<tr>' +
-        '<th rowspan="2">ລ/ດ</th>' +
-        '<th colspan="2">ເລກທະບຽນນັກສຶກສາ</th>' +
-        '<th rowspan="2">ຮູບຖ່າຍ</th>' +
-        '<th rowspan="2">ຊື່</th>' +
-        '<th rowspan="2">ນາມສະກຸນ</th>' +
-        '<th rowspan="2">ຊື່ແລະນາມສະກຸນ<br>(ພາສາອັງກິດ)</th>' +
-        '<th rowspan="2">ວັນເດືອນປີເກີດ</th>' +
-        '<th rowspan="2">ບ້ານ</th>' +
-        '<th rowspan="2">ເມືອງ/ນະຄອນ</th>' +
-        '<th rowspan="2">ແຂວງ</th>' +
-        '<th rowspan="2">ລະຫັດວິຊາທີ່ຮຽນ<br>(ຖ້າມີແມ່ນໃສ່ຊື່ວິຊາ)</th>' +
-        '<th colspan="2">ທະບຽນທາງວິທະຍາໄລ</th>' +
-        '<th rowspan="2">ທະບຽນກົມການ<br>ສຶກສາຊັ້ນສູງ</th>' +
-        '<th colspan="2">ໃບປະກາດມ.ປາຍ</th>' +
-        '</tr>';
-      html += '<tr>' +
-        '<th></th><th></th>' +
-        '<th>ພາສາລາວ</th><th>ພາສາອັງກິດ</th>' +
-        '<th>ມ.6</th><th>ມ.7</th>' +
-        '</tr>';
-      html += '</thead><tbody>';
+      html += '<tr><td colspan="17" class="category-heading">' + escapeHtml(g.category.Name) + '</td></tr>';
       g.students
         .slice()
         .sort(function (a, b) { return (Number(a.Order) || 0) - (Number(b.Order) || 0); })
@@ -780,8 +799,9 @@
             '<td>' + escapeHtml(s.DiplomaM7 || '') + '</td>' +
             '</tr>';
         });
-      html += '</tbody></table>';
     });
+
+    html += '</tbody></table>';
 
     html += '<div class="summary-block">';
     report.summary.forEach(function (s) {
