@@ -171,6 +171,7 @@ function upsertStudent(student) {
     if (!student.BatchNo) student.BatchNo = currentYearSuffix();
     d.students.push(student);
   }
+  renumberStudents(d);
   saveData(d);
   return getAllData();
 }
@@ -180,8 +181,28 @@ function deleteStudent(id) {
   const idx = d.students.findIndex((s) => s.ID === id);
   if (idx === -1) throw new Error('ไม่พบข้อมูลนักศึกษา');
   d.students.splice(idx, 1);
+  renumberStudents(d);
   saveData(d);
   return getAllData();
+}
+
+// ຮຽງເລກລຳດັບ (Order) ໃໝ່ໃຫ້ຕໍ່ເນື່ອງ 1..N ຕາມໝວດໝູ່ (SortOrder) ກ່ອນ
+// ແລ້ວຄ່ອຍຕາມລຳດັບເດີມພາຍໃນໝວດດຽວກັນ ຄືກັບ Code.gs's renumberStudents_()
+function renumberStudents(d) {
+  const categorySortOrder = {};
+  d.categories.forEach((c) => { categorySortOrder[c.ID] = c.SortOrder || 0; });
+
+  const indexed = d.students.map((s, i) => ({ s, i }));
+  indexed.sort((a, b) => {
+    const ca = categorySortOrder[a.s.CategoryId] !== undefined ? categorySortOrder[a.s.CategoryId] : 999;
+    const cb = categorySortOrder[b.s.CategoryId] !== undefined ? categorySortOrder[b.s.CategoryId] : 999;
+    if (ca !== cb) return ca - cb;
+    const oa = Number(a.s.Order) || 0;
+    const ob = Number(b.s.Order) || 0;
+    if (oa !== ob) return oa - ob;
+    return a.i - b.i;
+  });
+  indexed.forEach(({ s }, idx) => { s.Order = idx + 1; });
 }
 
 function saveSettings(settingsObj) {

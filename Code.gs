@@ -285,6 +285,7 @@ function upsertStudent(student) {
     });
     sheet.appendRow(newRow);
   }
+  renumberStudents_();
   return getAllData();
 }
 
@@ -311,7 +312,43 @@ function deleteStudent(id) {
   var row = findRowById_(s.studentsSheet, STUDENT_HEADERS, id);
   if (row === -1) throw new Error('ไม่พบข้อมูลนักศึกษา');
   s.studentsSheet.deleteRow(row);
+  renumberStudents_();
   return getAllData();
+}
+
+/**
+ * ຮຽງເລກລຳດັບ (ລ/ດ) ໃໝ່ໃຫ້ຕໍ່ເນື່ອງ 1..N ສະເໝີ ຫຼັງຈາກເພີ່ມ/ລຶບ/ແກ້ໄຂ
+ * ໝວດໝູ່ - ຈັດຮຽງຕາມໝວດໝູ່ (I, II, III, IV) ກ່ອນ ແລ້ວຄ່ອຍຕາມລຳດັບເດີມ
+ * ພາຍໃນໝວດດຽວກັນ ເພື່ອຄົງໝ້າຕາຂອງຕົ້ນສະບັບໄວ້.
+ */
+function renumberStudents_() {
+  var s = ensureSheets_();
+  var sheet = s.studentsSheet;
+  var students = sheetToObjects_(sheet, STUDENT_HEADERS);
+  if (students.length === 0) return;
+
+  var categorySortOrder = {};
+  sheetToObjects_(s.categoriesSheet, CATEGORY_HEADERS).forEach(function (c) {
+    categorySortOrder[c.ID] = c.SortOrder || 0;
+  });
+
+  students.sort(function (a, b) {
+    var ca = categorySortOrder[a.CategoryId] !== undefined ? categorySortOrder[a.CategoryId] : 999;
+    var cb = categorySortOrder[b.CategoryId] !== undefined ? categorySortOrder[b.CategoryId] : 999;
+    if (ca !== cb) return ca - cb;
+    var oa = Number(a.Order) || 0;
+    var ob = Number(b.Order) || 0;
+    if (oa !== ob) return oa - ob;
+    return a._row - b._row;
+  });
+
+  var orderCol = STUDENT_HEADERS.indexOf('Order') + 1;
+  students.forEach(function (st, idx) {
+    var newOrder = idx + 1;
+    if (Number(st.Order) !== newOrder) {
+      sheet.getRange(st._row, orderCol).setValue(newOrder);
+    }
+  });
 }
 
 /* ---- Photo upload to Google Drive ---- */
