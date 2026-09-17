@@ -97,17 +97,29 @@ node local-dev/server.js
 
 ### วิธีที่ 2 — ดีพลอยผ่าน `clasp` (สำหรับผู้ที่ถนัด command line)
 
+ก่อนเริ่ม ต้องเปิดใช้งาน **Google Apps Script API** ของบัญชีคุณก่อน (ทำครั้งเดียว)
+ที่ https://script.google.com/home/usersettings — เปิดสวิตช์ "Google Apps
+Script API" ให้เป็น ON แล้วรอสัก 1-2 นาทีให้ระบบ sync ก่อนใช้คำสั่งด้านล่าง
+(ถ้าข้ามขั้นตอนนี้ `clasp create` จะฟ้อง `User has not enabled the Apps
+Script API`)
+
 ```bash
 npm install -g @google/clasp
 clasp login
-clasp create --title "Student Registry" --type sheet --rootDir .
+clasp create --title "Student Registry" --type sheets --rootDir .
 clasp push
-clasp deploy
+clasp deploy --description "v1"
 ```
 
-`clasp create --type sheet` จะสร้าง Google ชีตใหม่ที่ผูกกับสคริปต์ให้อัตโนมัติ
-หลังจาก `clasp deploy` แล้ว ดูลิงก์ Web app ได้จากคำสั่ง `clasp deployments`
-หรือจากเมนู **Deploy → Manage deployments** ใน Apps Script editor
+หมายเหตุ: ต้องใช้ `--type sheets` (มีตัว **s**) ไม่ใช่ `sheet` — พิมพ์ผิดจะขึ้น
+`Invalid script type "sheet"`
+
+`clasp create --type sheets` จะสร้าง Google ชีตใหม่ที่ผูกกับสคริปต์ให้อัตโนมัติ
+และสร้างไฟล์ `.clasp.json` ในโฟลเดอร์ปัจจุบัน (ไฟล์นี้ถูกใส่ไว้ใน `.gitignore`
+แล้ว ไม่ต้องคอมมิตขึ้น repo) หลังจาก `clasp deploy` แล้ว ดูลิงก์ Web app ได้
+จากคำสั่ง `clasp deployments` หรือจากเมนู **Deploy → Manage deployments**
+ใน Apps Script editor (เปิดด้วย `clasp open`) — ต้องกด **Authorize access**
+ในหน้าเว็บด้วยตัวเองอย่างน้อยหนึ่งครั้งเพื่อยืนยันสิทธิ์เข้าถึงชีต/ไดรฟ์ของคุณ
 
 ## วิธีใช้งานแอป
 
