@@ -179,6 +179,10 @@
     background: #faf8f6;
   }
 
+  .modal-sm { max-width: 420px; }
+  .modal-sm .modal-body { padding: 20px 24px; }
+  .confirm-message { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text); }
+
   .badge {
     display: inline-block; padding: 2px 8px; border-radius: 999px;
     background: #eee; font-size: 11px;
@@ -402,6 +406,23 @@
     </div>
   </div>
 
+  <!-- ================= CONFIRM MODAL ================= -->
+  <div id="confirmModalBackdrop" class="modal-backdrop hidden">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 id="confirmModalTitle">ຢືນຢັນການດຳເນີນການ</h2>
+        <button type="button" class="modal-close" id="btnConfirmClose" aria-label="ປິດ">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmModalMessage" class="confirm-message"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" id="btnConfirmCancel">ຍົກເລີກ</button>
+        <button class="danger" id="btnConfirmOk">ລຶບ</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
 
   <script>
@@ -427,10 +448,41 @@
   document.addEventListener('DOMContentLoaded', function () {
     bindTabs();
     bindStudentModal();
+    bindConfirmModal();
     bindSettingsUI();
     bindReportUI();
     loadAll();
   });
+
+  /* ---------------- Custom confirm dialog (replaces window.confirm) ---------------- */
+
+  var confirmCallback = null;
+
+  function showConfirm(message, onConfirm, opts) {
+    opts = opts || {};
+    document.getElementById('confirmModalTitle').textContent = opts.title || 'ຢືນຢັນການດຳເນີນການ';
+    document.getElementById('confirmModalMessage').textContent = message;
+    var okBtn = document.getElementById('btnConfirmOk');
+    okBtn.textContent = opts.okText || 'ລຶບ';
+    okBtn.className = opts.danger === false ? '' : 'danger';
+    confirmCallback = onConfirm;
+    document.getElementById('confirmModalBackdrop').classList.remove('hidden');
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirmModalBackdrop').classList.add('hidden');
+    confirmCallback = null;
+  }
+
+  function bindConfirmModal() {
+    document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
+    document.getElementById('btnConfirmClose').addEventListener('click', closeConfirmModal);
+    document.getElementById('btnConfirmOk').addEventListener('click', function () {
+      var cb = confirmCallback;
+      closeConfirmModal();
+      if (cb) cb();
+    });
+  }
 
   function bindTabs() {
     document.querySelectorAll('.tab-btn').forEach(function (btn) {
@@ -694,14 +746,15 @@
   function editStudent(id) { openStudentModal(id); }
 
   function removeStudent(id) {
-    if (!confirm('ຢືນຢັນການລຶບຂໍ້ມູນນັກສຶກສານີ້?')) return;
-    google.script.run.withSuccessHandler(function (data) {
-      STATE.students = data.students;
-      STATE.categories = data.categories;
-      renderStudentTable();
-      updateBadge();
-      showToast('ລຶບຂໍ້ມູນສຳເລັດ');
-    }).withFailureHandler(showError).deleteStudent(id);
+    showConfirm('ຢືນຢັນການລຶບຂໍ້ມູນນັກສຶກສານີ້?', function () {
+      google.script.run.withSuccessHandler(function (data) {
+        STATE.students = data.students;
+        STATE.categories = data.categories;
+        renderStudentTable();
+        updateBadge();
+        showToast('ລຶບຂໍ້ມູນສຳເລັດ');
+      }).withFailureHandler(showError).deleteStudent(id);
+    }, { title: 'ຢືນຢັນການລຶບ' });
   }
 
   /* ---------------- Settings ---------------- */
